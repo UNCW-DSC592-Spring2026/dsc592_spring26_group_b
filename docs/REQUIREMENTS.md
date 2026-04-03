@@ -5,6 +5,31 @@
 ## Functional Requirements
 
 
+### User Requirements
+
+- system shall allow users to submit text reviews
+  - and bulk upload for batch-processing
+  
+- system shall analyze text reviws to output predicted rating
+
+- system shall provide a score indicating model peformance
+
+- system shall list keywords and phrases that provide model best fit
+
+### System Requirements
+
+- text pre-processing
+
+- feature extraction
+
+- model versioning
+
+
+
+### Domain Requirements
+
+
+
 
 
 ## Non-functional Requirements
