@@ -68,10 +68,10 @@
 ### External Requirements
 
 - Portability
-
+  - It must be able to run on the company’s main servers, a technician's laptop, or a cloud provider
 
 - Privacy
-
+  - system must protect the identity of the people writing the reviews
 
 ### Big Data
 
