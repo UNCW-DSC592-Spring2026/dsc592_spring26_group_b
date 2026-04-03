@@ -19,16 +19,21 @@
 ### System Requirements
 
 - text pre-processing
+  - system shall normalize review text
 
 - feature extraction
+  - system shall transform unstructured text into representation 
 
 - model versioning
+  - system shall automatically tag every prediction to track which model version used
 
 
 
 ### Domain Requirements
 
-
+1. Mobile App Store
+   - app store uses a 1 to 5 star rating system
+   - system has to understand the specific slang and jargon of your users
 
 
 
