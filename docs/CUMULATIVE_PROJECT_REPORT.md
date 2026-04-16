@@ -50,8 +50,9 @@ Flexibility: Ensure the system runs on local laptops, internal servers, or the c
 
 ### Webpage Template
 
+To address the limitations of the inherited prototype, we are utilizing **MyST Markdown** to bridge the gap between technical data science and rigorous software engineering. MyST transforms our documentation from a collection of flat files into a structured, professional-grade site that captures every stage of the engineering cycle. By using advanced features like callouts for requirements and grids for model comparisons, we ensure that our design choices are transparent and well-documented. This approach replaces the "loose documentation" of the original system with a clear, auditable record of our architectural and algorithmic decisions.
 
-
+MyST streamlines the communication of our system's evolution to project stakeholders. As we refine the baseline Azure ML pipeline, the framework allows us to integrate technical schemas and evaluation metrics into a cohesive narrative. By treating our documentation with the same discipline as our code, we demonstrate a mature engineering approach to a data-intensive project. This setup ensures that the rationale behind our system—from stakeholder needs to final performance reflections—is easily navigable and reproducible for the entire team.
 
 ### Risk Registers
 A structured risk analysis was conducted to identify potential challenges that could impact the successful development and deployment of the NLP-based app review rating system. Based on the project requirements, this phase emphasizes on proactive identification of uncertainties and mitigation strategies. The system is made for hign data intensive and high performance environment , where large volumes of unstructured text reviews must be processed efficiently while maintaining high prediction accuracy.
