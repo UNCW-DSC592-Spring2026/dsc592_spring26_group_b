@@ -11,6 +11,7 @@
 
 A context diagram defining system layers.
 ```
+
 ### Component Diagram
 
 ```{figure} ../images/component.png
