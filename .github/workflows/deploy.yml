@@ -59,7 +59,4 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        defaults:
-          run:
-            working-directory: ./
         uses: actions/deploy-pages@v5
