@@ -54,8 +54,24 @@ Flexibility: Ensure the system runs on local laptops, internal servers, or the c
 
 
 ### Risk Registers
+A structured risk analysis was conducted to identify potential challenges that could impact the successful development and deployment of the NLP-based app review rating system. Based on the project requirements, this phase emphasizes on proactive identification of uncertainties and mitigation strategies. The system is made for hign data intensive and high performance environment , where large volumes of unstructured text reviews must be processed efficiently while maintaining high prediction accuracy.
+risks were categorized into six major areas: technical, data-related, system and infrastructure, project and process, external/business, and model evaluation risks.
+
+### 1. Technical Risk
+The most critical risks identified are associated with the NLP model itself. Achieving the required performance threshold (F1-score ≥ 0.XX) is uncertain due to the variability and ambiguity of natural language. Additionally, improper text preprocessing can significantly downgrade model performance. Another major concern is model overfitting, where the system performs well on training data but fails to generalize to real-world inputs. To address these risks, iterative experimentation, robust preprocessing pipelines, and domain-specific lexicon development are planned.
+### 2. Data Risk
+Data quality is a basic dependency of the system. Noisy, incomplete, biased datasets can directly impact prediction accuracy. In particular, class imbalance (e.g., a higher proportion of positive reviews) may lead to biased predictions. Privacy is another critical concern, as the system processes user-generated content. Any exposure of personally identifiable information would represent a severe compliance and ethical failure. To mitigate these risks, data validation pipelines, anonymization techniques, and resampling strategies will be implemented.
+### 3. System and Infrastructure Risk
+The system is expected to handle high-throughput batch processing (xx,xxx reviews per hour), making scalability and performance key concerns. Failures in CI/CD pipelines or system downtime during business hours could significantly impact stakeholders relying on real-time insights. To mitigate these risks, load testing, monitoring systems, and automated deployment pipelines with rollback mechanisms will be incorporated into the architecture.
+### 4. Project and Process Risks
+Since the project is developed in a collaborative environment using GitHub, process-related risks such as poor task tracking, lack of coordination, and inadequate documentation were identified. Without proper use of GitHub Issues, branches, and pull requests, the development process may become disorganized. To address this, a structured workflow (Issue → Branch → Pull Request → Merge) will be enforced, along with regular team sync meetings.
+### 5. External Business Risk
+Changes in stakeholder requirements or misinterpretation of business goals may lead to misaligned system functionality. Additionally, regulatory considerations related to data privacy must be addressed. These risks will be mitigated through continuous stakeholder feedback, modular system design, and adherence to data protection standards.
+### 6. Model Evaluation Risks
+One of the most important and critical risks involves the selection of appropriate evaluation metrics. The baseline system uses regression techniques; however, the problem may be better framed as a classification task. Using inappropriate metrics could lead to misleading conclusions about model performance. Therefore, evaluation strategies will focus on classification metrics such as F1-score, precision, and recall, ensuring alignment with the problem formulation.
 
 
+Each identified risk is paired with a mitigation strategy and an assigned owner responsible for monitoring and resolution. The risk register will be treated as a living document and updated throughout subsequent phases of the project. Regular reviews will be conducted to reassess risk levels and ensure that mitigation strategies remain effective as the system evolves.
 
 ### Architecture Diagrams
 In order to succeed in our project's end goal, we heavily prioritized having an organized plan with all the requirements we need for our model. With this, we included both a context diagram with the overall workflow for the project and how everything is connected with external factors, and we included a component diagram, which discusses the internal processes of our system that he hope to include in our final model. Doing so will allow us to incorporate all processes such as ingestion, preprocessing, machine learning, and reporting to maintain the model and ensure it is providing accurate results. 
