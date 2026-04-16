@@ -1,6 +1,6 @@
 version: 1
 project:
-  title: Website Title
+  title: DSC592 - Software Engineering for Data Science
   # authors:
   #   - name: Author Name
   copyright: '2026'
@@ -20,16 +20,16 @@ project:
     - book/references.bib
   toc:
     - file: index.md
-    - title: Preface
+    - title: Phase 01
       children:
-        - file: book/preface.md
-    - title: Getting Started
+        - file: book/phase01/vision.md
+        - file: book/phase01/requirements.md       
+
+    - title: Phase 02
       children:
-        - file: book/part01/getting-started.md
-        - file: book/part01/installation.md
-    - title: Examples
-      children:
-        - file: book/part02/first-example.md
+        - file: book/phase02/architecture.md
+        - file: book/phase02/riskregister.md
+
 site:
   options:
     logo: logo.png
