@@ -1,0 +1,153 @@
+amlModuleIdentifier:
+  namespace: azureml
+  moduleName: Preprocess Text
+  moduleVersion: 0.0.192
+meta:
+  collectLogs: true
+metadata:
+  annotations:
+    tags: []
+    familyId: bf9e794a-9e2b-4662-902a-0e73b255c135
+    contact: Microsoft Corporation
+    helpDocument: https://aka.ms/aml/preprocess-text
+category: Text Analytics
+description: Performs cleaning operations on text.
+isDeterministic: true
+inputs:
+- name: Dataset
+  type: DataFrameDirectory
+  description: Input data
+- name: Stop words
+  type: DataFrameDirectory
+  optional: true
+  description: Optional custom list of stop words to remove
+- name: Language
+  type: Mode
+  default: English
+  description: Select the language to preprocess
+  options:
+  - English:
+    - name: Expand verb contractions
+      type: Boolean
+      default: true
+      description: Expand verb contractions (English only)
+- name: Text column to clean
+  type: ColumnPicker
+  description: Select the text column to clean
+  columnPickerFor: Dataset
+  columnSelectionCategories:
+  - String
+  singleColumnSelection: true
+- name: Remove stop words
+  type: Boolean
+  default: true
+  description: Remove stop words
+- name: Use lemmatization
+  type: Boolean
+  default: true
+  description: Use lemmatization
+- name: Detect sentences
+  type: Boolean
+  default: true
+  description: Detect sentences by adding a sentence terminator "|||" that can be
+    used by the n-gram features extractor module
+- name: Normalize case to lowercase
+  type: Boolean
+  default: true
+  description: Normalize case to lowercase
+- name: Remove numbers
+  type: Boolean
+  default: true
+  description: Remove numbers
+- name: Remove special characters
+  type: Boolean
+  default: true
+  description: Remove non-alphanumeric special characters and replace them with "|"
+    character
+- name: Remove duplicate characters
+  type: Boolean
+  default: true
+  description: Remove duplicate characters
+- name: Remove email addresses
+  type: Boolean
+  default: true
+  description: Remove email addresses
+- name: Remove URLs
+  type: Boolean
+  default: true
+  description: Remove URLs
+- name: Normalize backslashes to slashes
+  type: Boolean
+  default: true
+  description: Normalize backslashes to slashes
+- name: Split tokens on special characters
+  type: Boolean
+  default: true
+  description: Split tokens on special characters
+- name: Custom regular expression
+  type: String
+  optional: true
+  description: Specify the custom regular expression
+- name: Custom replacement string
+  type: String
+  optional: true
+  description: Specify the custom replacement string for the custom regular expression
+outputs:
+- name: Results dataset
+  type: DataFrameDirectory
+  description: Results dataset
+implementation:
+  container:
+    amlEnvironment:
+      name: AzureML-Designer
+      version: '89'
+    command:
+    - python
+    - invoker.py
+    - python
+    - -m
+    - azureml.studio.modulehost.module_invoker
+    - --module-name=azureml.studio.modules.text_analytics.preprocess_text.preprocess_text
+    args:
+    - --dataset
+    - inputPath: Dataset
+    - - --stop-words
+      - inputPath: Stop words
+    - --language
+    - inputValue: Language
+    - --text-column-to-clean
+    - inputValue: Text column to clean
+    - --remove-stop-words
+    - inputValue: Remove stop words
+    - --use-lemmatization
+    - inputValue: Use lemmatization
+    - --detect-sentences
+    - inputValue: Detect sentences
+    - --normalize-case-to-lowercase
+    - inputValue: Normalize case to lowercase
+    - --remove-numbers
+    - inputValue: Remove numbers
+    - --remove-special-characters
+    - inputValue: Remove special characters
+    - --remove-duplicate-characters
+    - inputValue: Remove duplicate characters
+    - --remove-email-addresses
+    - inputValue: Remove email addresses
+    - --remove-ur-ls
+    - inputValue: Remove URLs
+    - - --expand-verb-contractions
+      - inputValue: Expand verb contractions
+    - --normalize-backslashes-to-slashes
+    - inputValue: Normalize backslashes to slashes
+    - --split-tokens-on-special-characters
+    - inputValue: Split tokens on special characters
+    - - --custom-regular-expression
+      - inputValue: Custom regular expression
+    - - --custom-replacement-string
+      - inputValue: Custom replacement string
+    - --results-dataset
+    - outputPath: Results dataset
+  servingEntry:
+    module: azureml.studio.modules.text_analytics.preprocess_text.preprocess_text
+    class: PreprocessTextModule
+    func: run

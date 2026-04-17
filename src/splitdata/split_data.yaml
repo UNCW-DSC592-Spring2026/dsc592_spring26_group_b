@@ -1,0 +1,114 @@
+amlModuleIdentifier:
+  namespace: azureml
+  moduleName: Split Data
+  moduleVersion: 0.0.192
+meta:
+  collectLogs: true
+  passThroughInRealTimeInference: true
+metadata:
+  annotations:
+    tags: []
+    familyId: 70530644-c97a-4ab6-85f7-88bf30a8be5f
+    contact: Microsoft Corporation
+    helpDocument: https://aka.ms/aml/split-data
+category: Data Transformation
+description: Partitions the rows of a dataset into two distinct sets.
+isDeterministic: true
+inputs:
+- name: Dataset
+  type: DataFrameDirectory
+  description: Dataset to split
+- name: Splitting mode
+  type: Mode
+  default: Split Rows
+  description: Choose the method for splitting the dataset
+  options:
+  - Split Rows:
+    - name: Fraction of rows in the first output dataset
+      type: Float
+      default: 0.5
+      description: Specify a ratio representing the number of rows in the first output
+        dataset over the number of rows in the input dataset
+      min: 0
+      max: 1
+    - name: Randomized split
+      type: Boolean
+      default: true
+      description: Indicate whether rows should be randomly selected
+    - name: Random seed
+      type: Int
+      default: 0
+      description: Provide a value to see the random number generator seed
+      min: 0
+      max: 4294967295
+    - name: Stratified split
+      type: Mode
+      default: 'False'
+      description: Indicate whether the rows in each split should be grouped using
+        a strata column
+      options:
+      - 'True':
+        - name: Stratification key column
+          type: ColumnPicker
+          description: Select the column containing the stratification key
+          columnPickerFor: Dataset
+          singleColumnSelection: true
+      - 'False'
+  - Regular Expression:
+    - name: Regular expression
+      type: String
+      default: \"column name" ^start
+      description: Type a regular expression to use as criteria when splitting the
+        dataset on a string column
+  - Relative Expression:
+    - name: Relational expression
+      type: String
+      default: \"column name" > 3
+      description: Type a relational expression to use in splitting the dataset on
+        a numeric column
+outputs:
+- name: Results dataset1
+  type: DataFrameDirectory
+  description: Dataset containing selected rows
+- name: Results dataset2
+  type: DataFrameDirectory
+  description: Dataset containing all other rows
+implementation:
+  container:
+    amlEnvironment:
+      name: AzureML-Designer
+      version: '89'
+    command:
+    - python
+    - invoker.py
+    - python
+    - -m
+    - azureml.studio.modulehost.module_invoker
+    - --module-name=azureml.studio.modules.datatransform.split_data.split_data
+    args:
+    - --dataset
+    - inputPath: Dataset
+    - --splitting-mode
+    - inputValue: Splitting mode
+    - - --fraction-of-rows-in-the-first-output-dataset
+      - inputValue: Fraction of rows in the first output dataset
+    - - --randomized-split
+      - inputValue: Randomized split
+    - - --random-seed
+      - inputValue: Random seed
+    - - --stratified-split
+      - inputValue: Stratified split
+    - - --stratification-key-column
+      - inputValue: Stratification key column
+    - - --regular-expression
+      - inputValue: Regular expression
+    - - --relational-expression
+      - inputValue: Relational expression
+    - --results-dataset1
+    - outputPath: Results dataset1
+    - --results-dataset2
+    - outputPath: Results dataset2
+  servingEntry:
+    module: azureml.studio.modules.datatransform.split_data.split_data
+    class: SplitDataModule
+    func: run

@@ -1,0 +1,60 @@
+amlModuleIdentifier:
+  namespace: azureml
+  moduleName: Train Model
+  moduleVersion: 0.0.192
+meta:
+  collectLogs: true
+metadata:
+  annotations:
+    tags: []
+    familyId: 5cc7053e-aa30-450d-96c0-dae4be720977
+    contact: Microsoft Corporation
+    helpDocument: https://aka.ms/aml/train-model
+category: Model Training
+description: Trains a classification or regression model in a supervised manner.
+isDeterministic: true
+inputs:
+- name: Untrained model
+  type: UntrainedModelDirectory
+  description: Untrained learner
+- name: Dataset
+  type: DataFrameDirectory
+  description: Training data
+- name: Label column
+  type: ColumnPicker
+  description: Select the column that contains the label or outcome column
+  columnPickerFor: Dataset
+  singleColumnSelection: true
+- name: Model explanations
+  type: Boolean
+  default: false
+  optional: true
+  description: Whether to generate explanations for the trained model. Default is
+    unchecked to reduce extra compute overhead.
+outputs:
+- name: Trained model
+  type: ModelDirectory
+  description: Trained learner
+implementation:
+  container:
+    amlEnvironment:
+      name: AzureML-Designer
+      version: '89'
+    command:
+    - python
+    - invoker.py
+    - python
+    - -m
+    - azureml.studio.modulehost.module_invoker
+    - --module-name=azureml.studio.modules.ml.train.train_generic_model.train_generic_model
+    args:
+    - --untrained-model
+    - inputPath: Untrained model
+    - --dataset
+    - inputPath: Dataset
+    - --label-column
+    - inputValue: Label column
+    - - --model-explanations
+      - inputValue: Model explanations
+    - --trained-model
+    - outputPath: Trained model
