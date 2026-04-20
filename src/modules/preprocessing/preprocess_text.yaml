@@ -103,11 +103,11 @@ implementation:
       version: '89'
     command:
     - python
-    - invoker.py
+    - -m
+    - aml_shared.urldecode
     - python
     - -m
-    - azureml.studio.modulehost.module_invoker
-    - --module-name=azureml.studio.modules.text_analytics.preprocess_text.preprocess_text
+    - azureml.studio.modules.text_analytics.preprocess_text.preprocess_text
     args:
     - --dataset
     - inputPath: Dataset
