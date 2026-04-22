@@ -1,148 +1,63 @@
-amlModuleIdentifier:
-  namespace: azureml
-  moduleName: Linear Regression
-  moduleVersion: 0.0.192
-meta:
-  collectLogs: true
-metadata:
-  annotations:
-    tags: []
-    familyId: 31960a6f-789b-4cf7-88d6-2e1152c0bd1a
-    contact: Microsoft Corporation
-    helpDocument: https://aka.ms/aml/linear-regression
-category: Machine Learning Algorithms/Regression
-description: Creates a linear regression model.
-isDeterministic: true
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: linear_regression_custom
+display_name: Linear Regression (Custom Invoker)
+version: "SET_BY_GITHUB_ACTIONS"
+type: command
+
 inputs:
-- name: Solution method
-  type: Mode
-  default: Ordinary Least Squares
-  description: Choose an optimization method
-  options:
-  - Online Gradient Descent:
-    - name: Create trainer mode
-      type: Mode
-      default: SingleParameter
-      description: Create advanced learner options
-      options:
-      - SingleParameter:
-        - name: Learning rate
-          type: Float
-          default: 0.1
-          description: Specify the initial learning rate for the stochastic gradient
-            descent optimizer
-          min: 2.220446049250313e-16
-        - name: Number of epochs over which algorithm iterates through examples
-          type: Int
-          label: Number of training epochs
-          default: 10
-          description: Specify how many times the algorithm should iterate through
-            examples. For datasets with a small number of examples, this number should
-            be large to reach convergence.
-          min: 0
-        - name: L2 regularization term weight
-          type: Float
-          label: L2 regularization weight
-          default: 0.001
-          description: Specify the weight for L2 regularization. Use a non-zero value
-            to avoid overfitting.
-          min: 0
-      - ParameterRange:
-        - name: Range for learning rate
-          type: ParameterRange
-          label: Learning rate
-          default: 0.025; 0.05; 0.1; 0.2
-          description: Specify the range for the initial learning rate for the stochastic
-            gradient descent optimizer
-        - name: Range for number of epochs over which algorithm iterates through examples
-          type: ParameterRange
-          label: Number of training epochs
-          default: 1; 10; 100
-          description: Specify range for how many times the algorithm should iterate
-            through examples. For datasets with a small number of examples, this number
-            should be large to reach convergence.
-        - name: Range for L2 regularization term weight
-          type: ParameterRange
-          label: L2 regularization weight
-          default: 0.001; 0.01; 0.1
-          description: Specify the range for the weight for L2 regularization. Use
-            a non-zero value to avoid overfitting.
-    - name: Should input instances be normalized
-      type: Boolean
-      label: Normalize features
-      default: true
-      description: Indicate whether instances should be normalized
-    - name: Decrease learning rate as iterations progress
-      type: Boolean
-      label: Decrease learning rate
-      default: true
-      description: Indicate whether the learning rate should decrease as iterations
-        progress
-  - Ordinary Least Squares:
-    - name: L2 regularization weight
-      type: Float
-      default: 0.001
-      description: Specify the weight for the L2 regularization. Use a non-zero value
-        to avoid overfitting.
-      min: 0
-    - name: Include intercept term
-      type: Boolean
-      default: true
-      description: Indicate whether an additional term should be added for the intercept
-- name: Random number seed
-  type: Int
-  optional: true
-  description: Specify a value to seed the random number generator used by the model.
-    Leave blank for default.
-  min: 0
-  max: 4294967295
+  Solution_method:
+    type: string
+    default: "Ordinary Least Squares"
+    description: "Optimization method: Ordinary Least Squares or Online Gradient Descent"
+  L2_regularization_weight:
+    type: number
+    default: 0.001
+  Include_intercept_term:
+    type: boolean
+    default: true
+  # Online Gradient Descent specific parameters
+  Create_trainer_mode:
+    type: string
+    default: "SingleParameter"
+    optional: true
+  Learning_rate:
+    type: number
+    default: 0.1
+    optional: true
+  Number_of_training_epochs:
+    type: integer
+    default: 10
+    optional: true
+  Normalize_features:
+    type: boolean
+    default: true
+    optional: true
+  Decrease_learning_rate:
+    type: boolean
+    default: true
+    optional: true
+  Random_number_seed:
+    type: integer
+    optional: true
+
 outputs:
-- name: Untrained model
-  type: UntrainedModelDirectory
-  description: An untrained regression model
-implementation:
-  container:
-    amlEnvironment:
-      name: AzureML-Designer
-      version: '89'
-    command:
-    - python
-    - invoker.py
-    - python
-    - -m
-    - azureml.studio.modulehost.module_invoker
-    - --module-name=azureml.studio.modules.ml.initialize_models.regressor.linear_regressor.linear_regressor
-    args:
-    - --solution-method
-    - inputValue: Solution method
-    - - --create-trainer-mode
-      - inputValue: Create trainer mode
-    - - --should-input-instances-be-normalized
-      - inputValue: Should input instances be normalized
-    - - --learning-rate
-      - inputValue: Learning rate
-    - - --number-of-epochs-over-which-algorithm-iterates-through-examples
-      - inputValue: Number of epochs over which algorithm iterates through examples
-    - - --range-for-learning-rate
-      - inputValue: Range for learning rate
-    - - --range-for-number-of-epochs-over-which-algorithm-iterates-through-examples
-      - inputValue: Range for number of epochs over which algorithm iterates through
-          examples
-    - - --decrease-learning-rate-as-iterations-progress
-      - inputValue: Decrease learning rate as iterations progress
-    - - --l2-regularization-term-weight
-      - inputValue: L2 regularization term weight
-    - - --l2-regularization-weight
-      - inputValue: L2 regularization weight
-    - - --range-for-l2-regularization-term-weight
-      - inputValue: Range for L2 regularization term weight
-    - - --random-number-seed
-      - inputValue: Random number seed
-    - - --include-intercept-term
-      - inputValue: Include intercept term
-    - --untrained-model
-    - outputPath: Untrained model
-  servingEntry:
-    module: azureml.studio.modules.ml.initialize_models.regressor.linear_regressor.linear_regressor
-    class: LinearRegressionModule
-    func: run
+  Untrained_model:
+    type: uri_folder
+    description: An untrained regression model
+
+code: ../../
+environment: azureml:AzureML-Designer:89
+
+command: >-
+  python -m aml_shared.urldecode
+  python -m azureml.studio.modules.ml.initialize_models.regressor.linear_regressor.linear_regressor
+  --solution-method "${{inputs.Solution_method}}"
+  --l2-regularization-weight ${{inputs.L2_regularization_weight}}
+  --include-intercept-term ${{inputs.Include_intercept_term}}
+  $[[--create-trainer-mode "${{inputs.Create_trainer_mode}}"]]
+  $[[--learning-rate ${{inputs.Learning_rate}}]]
+  $[[--number-of-epochs-over-which-algorithm-iterates-through-examples ${{inputs.Number_of_training_epochs}}]]
+  $[[--should-input-instances-be-normalized ${{inputs.Normalize_features}}]]
+  $[[--decrease-learning-rate-as-iterations-progress ${{inputs.Decrease_learning_rate}}]]
+  $[[--random-number-seed ${{inputs.Random_number_seed}}]]
+  --untrained-model ${{outputs.Untrained_model}}

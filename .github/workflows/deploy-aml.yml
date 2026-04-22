@@ -1,13 +1,15 @@
-name: Azure ML CI/CD
+name: Azure ML Full Pipeline CI/CD
 
 on:
   push:
     branches: [ baseline ]
     paths:
-      - 'src/**' # Only trigger if code or configs change
+      - '**.yaml'
+      - '**.py'
+      - 'aml_shared/**'
 
 jobs:
-  deploy-and-test:
+  deploy-and-run-pipeline:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
@@ -21,31 +23,35 @@ jobs:
       - name: Install ML Extension
         run: az extension add -n ml
 
-      - name: Register Component with Dynamic Version
+      - name: Prepare and Register All Components
         run: |
-          # Create a unique version using the GitHub Run ID (e.g., 1.0.42)
+          # 1. Define the dynamic version
           VERSION="1.0.${{ github.run_number }}"
-
-          # Swap the placeholder in the YAML
-          sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" src/modules/preprocessing/preprocess_text.yaml
-
-          echo "Registering version: $VERSION"
-
-          az ml component create --file src/modules/preprocessing/preprocess_text.yaml \
-            --resource-group dsc592_spring26_group_b \
-            --workspace-name dsc592_spring26_group_b
-
-          # Store version for the next step
           echo "DEPLOY_VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Run Smoke Test Job
+          # 2. Inject version into all Component and Job YAMLs
+          # This replaces the 'SET_BY_GITHUB_ACTIONS' and '${{github_run_id}}' placeholders
+          sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" *.yaml
+          sed -i "s/\${{github_run_id}}/$VERSION/g" run_full_pipeline.yaml
+
+          echo "Registering all components with version: $VERSION"
+
+          # 3. Loop through and register every component YAML
+          # Assumes your component files are in the root or you can provide the path
+          for file in preprocess_text.yaml split_data.yaml linear_regression.yaml train_model.yaml score_model.yaml; do
+            echo "Registering $file..."
+            az ml component create --file $file \
+              --resource-group dsc592_spring26_group_b \
+              --workspace-name dsc592_spring26_group_b
+          done
+
+      - name: Submit Full Pipeline Job
         run: |
-          # Update the job file to use the version we just created
-          # This looks for the component name and updates the version tag
-          sed -i "s/preprocess_text_custom:.*/preprocess_text_custom:${{ env.DEPLOY_VERSION }}/g" src/modules/preprocessing/run_preprocess.yaml
+          echo "Launching Full End-to-End Pipeline Job..."
 
-          echo "Launching test job with version ${{ env.DEPLOY_VERSION }}..."
-
-          az ml job create --file src/modules/preprocessing/run_preprocess.yaml \
+          # We use --no-wait so the GitHub Runner finishes once the job is successfully
+          # accepted by Azure. Azure ML will handle the actual execution.
+          az ml job create --file run_full_pipeline.yaml \
             --resource-group dsc592_spring26_group_b \
-            --workspace-name dsc592_spring26_group_b
+            --workspace-name dsc592_spring26_group_b \
+            --no-wait
