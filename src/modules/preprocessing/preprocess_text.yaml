@@ -64,7 +64,6 @@ inputs:
 outputs:
   Results_dataset:
     type: uri_folder
-
 code: ../../
 environment: azureml:AzureML-Designer:89
 command: >-
