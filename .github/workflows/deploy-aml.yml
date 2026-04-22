@@ -22,7 +22,12 @@ jobs:
 
       - name: Install ML Extension
         run: az extension add -n ml
-
+      - name: Purge Data from Workspace
+        run: |
+          # Remove large files that shouldn't be uploaded to Azure ML
+          find . -name "*.csv" -delete
+          find . -name "*.parquet" -delete
+          rm -rf tests/ experiments/ docs/
       - name: Prepare and Register All Components
         run: |
           # 1. Define the dynamic version

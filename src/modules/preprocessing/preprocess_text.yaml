@@ -60,7 +60,6 @@ inputs:
   Custom_replacement_string:
     type: string
     optional: true
-
 outputs:
   Results_dataset:
     type: uri_folder

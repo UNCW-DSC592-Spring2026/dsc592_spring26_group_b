@@ -1,18 +1,22 @@
-# Exclude git and github metadata
+
+# Data files (The cause of the 17MB upload)
+data.csv
+data/
+output/
+
+# Python metadata
+**/__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# Build and environment
+**/bin/
+**/obj/
 .git/
 .github/
 
-# Exclude python packaging and cache
-**/__pycache__/
-*.egg-info/
-build/
-dist/
-
-# Exclude docs and experiments (usually not needed for the cloud job)
+# Other non-essential folders
 docs/
 experiments/
-
-# Exclude local test data if you have any
-tests/data/
-*.csv
-*.parquet
+web/
+tests/
