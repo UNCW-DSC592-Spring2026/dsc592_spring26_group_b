@@ -1,0 +1,18 @@
+# Exclude git and github metadata
+.git/
+.github/
+
+# Exclude python packaging and cache
+**/__pycache__/
+*.egg-info/
+build/
+dist/
+
+# Exclude docs and experiments (usually not needed for the cloud job)
+docs/
+experiments/
+
+# Exclude local test data if you have any
+tests/data/
+*.csv
+*.parquet
