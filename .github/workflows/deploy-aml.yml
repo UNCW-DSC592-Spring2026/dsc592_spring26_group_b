@@ -48,5 +48,4 @@ jobs:
 
           az ml job create --file src/modules/preprocessing/run_preprocess.yaml \
             --resource-group dsc592_spring26_group_b \
-            --workspace-name dsc592_spring26_group_b \
-            --no-wait
+            --workspace-name dsc592_spring26_group_b
