@@ -30,8 +30,8 @@ jobs:
           echo "DEPLOY_VERSION=$VERSION" >> $GITHUB_ENV
 
           # 2. Inject version into all Component and Job YAMLs
-          sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" *.yaml
-          sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" run_full_pipeline.yaml
+          find . -name "*.yaml" -exec sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" {} +
+          find . -name "run_full_pipeline.yaml" -exec sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" {} +
 
           echo "Registering all components with version: $VERSION"
 
@@ -52,5 +52,4 @@ jobs:
           # accepted by Azure. Azure ML will handle the actual execution.
           az ml job create --file run_full_pipeline.yaml \
             --resource-group dsc592_spring26_group_b \
-            --workspace-name dsc592_spring26_group_b \
-            --no-wait
+            --workspace-name dsc592_spring26_group_b

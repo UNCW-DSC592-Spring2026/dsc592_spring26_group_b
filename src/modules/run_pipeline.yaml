@@ -3,7 +3,6 @@ type: pipeline
 display_name: AppReview_EndToEnd_Pipeline
 settings:
   default_compute: azureml:github-cluster
-
 jobs:
   # 1. Text Preprocessing
   cleaning_step:
