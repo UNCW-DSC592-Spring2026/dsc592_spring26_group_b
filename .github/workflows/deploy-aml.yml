@@ -30,7 +30,6 @@ jobs:
           echo "DEPLOY_VERSION=$VERSION" >> $GITHUB_ENV
 
           # 2. Inject version into all Component and Job YAMLs
-          # This replaces the 'SET_BY_GITHUB_ACTIONS' and '${{github_run_id}}' placeholders
           sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" *.yaml
           sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" run_full_pipeline.yaml
 
