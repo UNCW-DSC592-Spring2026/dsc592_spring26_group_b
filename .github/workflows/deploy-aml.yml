@@ -37,19 +37,24 @@ jobs:
 
           # 3. Loop through and register every component YAML
           # Assumes your component files are in the root or you can provide the path
-          for file in preprocess_text.yaml split_data.yaml linear_regression.yaml train_model.yaml score_model.yaml; do
-            echo "Registering $file..."
-            az ml component create --file $file \
-              --resource-group dsc592_spring26_group_b \
-              --workspace-name dsc592_spring26_group_b
+          for file_name in preprocess_text.yaml split_data.yaml linear_regression.yaml train_model.yaml score_model.yaml; do
+            FILE_PATH=$(find . -name "$file_name")
+            if [ -n "$FILE_PATH" ]; then
+              echo "Registering $file_name found at $FILE_PATH..."
+              az ml component create --file "$FILE_PATH" \
+                --resource-group dsc592_spring26_group_b \
+                --workspace-name dsc592_spring26_group_b
+            else
+              echo "Warning: Could not find $file_name in the repository."
+            fi
           done
 
       - name: Submit Full Pipeline Job
         run: |
-          echo "Launching Full End-to-End Pipeline Job..."
+          # Find the exact path for the pipeline job file
+          PIPELINE_PATH=$(find . -name "run_pipeline.yaml")
+          echo "Launching Full Pipeline from $PIPELINE_PATH..."
 
-          # We use --no-wait so the GitHub Runner finishes once the job is successfully
-          # accepted by Azure. Azure ML will handle the actual execution.
-          az ml job create --file run_full_pipeline.yaml \
+          az ml job create --file "$PIPELINE_PATH" \
             --resource-group dsc592_spring26_group_b \
             --workspace-name dsc592_spring26_group_b
