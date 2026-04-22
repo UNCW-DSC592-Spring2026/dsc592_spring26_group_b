@@ -3,7 +3,7 @@ type: pipeline
 display_name: AppReview_Preprocess_Run
 
 settings:
-  default_compute: azureml:dsc592s26groupb-lite
+  default_compute: azureml:github-cluster
 
 jobs:
   cleaning_step:
