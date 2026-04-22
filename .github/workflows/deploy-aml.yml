@@ -39,21 +39,35 @@ jobs:
           find . -name "run_full_pipeline.yaml" -exec sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" {} +
 
           echo "Registering all components with version: $VERSION"
+          # Components to register
+          COMPONENTS=("preprocess_text.yaml" "split_data.yaml" "linear_regression.yaml" "train_model.yaml" "score_model.yaml")
 
-          # 3. Loop through and register every component YAML
-          # Assumes your component files are in the root or you can provide the path
-          for file_name in preprocess_text.yaml split_data.yaml linear_regression.yaml train_model.yaml score_model.yaml; do
+          for file_name in "${COMPONENTS[@]}"; do
             FILE_PATH=$(find . -name "$file_name")
             if [ -n "$FILE_PATH" ]; then
-              echo "Registering $file_name found at $FILE_PATH..."
-              az ml component create --file "$FILE_PATH" \
-                --resource-group dsc592_spring26_group_b \
-                --workspace-name dsc592_spring26_group_b
-            else
-              echo "Warning: Could not find $file_name in the repository."
+              echo "Attempting to register $file_name..."
+
+              # Retry logic: Try up to 3 times
+              SUCCESS=false
+              for i in {1..3}; do
+                if az ml component create --file "$FILE_PATH" \
+                  --resource-group dsc592_spring26_group_b \
+                  --workspace-name dsc592_spring26_group_b; then
+                  SUCCESS=true
+                  break
+                else
+                  echo "Attempt $i failed. Azure ML service might be busy. Retrying in 10s..."
+                  sleep 10
+                fi
+              done
+
+              if [ "$SUCCESS" = false ]; then
+                echo "Failed to register $file_name after 3 attempts."
+                exit 1
+              fi
             fi
           done
-
+         
       - name: Submit Full Pipeline Job
         run: |
           # Find the exact path for the pipeline job file
