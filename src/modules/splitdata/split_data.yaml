@@ -50,8 +50,7 @@ environment: azureml:AzureML-Designer:89
 
 command: >-
   python -m aml_shared.urldecode
-  python -m azureml.studio.modulehost.module_invoker
-  --module-name=azureml.studio.modules.datatransform.split_data.split_data
+  python -m azureml.studio.modules.datatransform.split_data.split_data
   --dataset ${{inputs.Dataset}}
   --splitting-mode "${{inputs.Splitting_mode}}"
   --fraction-of-rows-in-the-first-output-dataset ${{inputs.Fraction_of_rows_in_the_first_output_dataset}}

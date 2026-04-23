@@ -67,8 +67,7 @@ code: ../../
 environment: azureml:AzureML-Designer:89
 command: >-
   python -m aml_shared.urldecode
-  python -m azureml.studio.modulehost.module_invoker
-  --module-name= azureml.studio.modules.text_analytics.preprocess_text.preprocess_text
+  python -m azureml.studio.modules.text_analytics.preprocess_text.preprocess_text
   --dataset ${{inputs.Dataset}}
   --text-column-to-clean "${{inputs.Text_column_to_clean}}"
   --language "${{inputs.Language}}"
