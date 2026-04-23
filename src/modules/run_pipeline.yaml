@@ -52,7 +52,7 @@ jobs:
     inputs:
       Untrained_model: ${{parent.jobs.init_model_step.outputs.Untrained_model}}
       Dataset: ${{parent.jobs.split_step.outputs.Results_dataset1}} # Using the 80% split
-      Label_column: "rating" # Replace with your target column name
+      Label_column: "reviewerRating" # Replace with your target column name
     outputs:
       Trained_model:
         mode: upload

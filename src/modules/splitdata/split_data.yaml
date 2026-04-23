@@ -50,15 +50,13 @@ environment: azureml:AzureML-Designer:89
 
 command: >-
   python -m aml_shared.urldecode
-  python -m azureml.studio.modules.datatransform.split_data.split_data
+  python -m azureml.studio.modulehost.module_invoker
+  --module-name=azureml.studio.modules.datatransform.split_data.split_data
   --dataset ${{inputs.Dataset}}
   --splitting-mode "${{inputs.Splitting_mode}}"
   --fraction-of-rows-in-the-first-output-dataset ${{inputs.Fraction_of_rows_in_the_first_output_dataset}}
   --randomized-split ${{inputs.Randomized_split}}
   --random-seed ${{inputs.Random_seed}}
   --stratified-split ${{inputs.Stratified_split}}
-  $[[--stratification-key-column "${{inputs.Stratification_key_column}}"]]
-  $[[--regular-expression "${{inputs.Regular_expression}}"]]
-  $[[--relational-expression "${{inputs.Relational_expression}}"]]
   --results-dataset1 ${{outputs.Results_dataset1}}
   --results-dataset2 ${{outputs.Results_dataset2}}

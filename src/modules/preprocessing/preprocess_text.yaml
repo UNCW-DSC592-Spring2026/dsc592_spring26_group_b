@@ -82,8 +82,4 @@ command: >-
   --remove-ur-ls ${{inputs.Remove_URLs}}
   --normalize-backslashes-to-slashes ${{inputs.Normalize_backslashes_to_slashes}}
   --split-tokens-on-special-characters ${{inputs.Split_tokens_on_special_characters}}
-  $[[--stop-words ${{inputs.Stop_words}}]]
-  $[[--expand-verb-contractions ${{inputs.Expand_verb_contractions}}]]
-  $[[--custom-regular-expression "${{inputs.Custom_regular_expression}}"]]
-  $[[--custom-replacement-string "${{inputs.Custom_replacement_string}}"]]
   --results-dataset ${{outputs.Results_dataset}}
