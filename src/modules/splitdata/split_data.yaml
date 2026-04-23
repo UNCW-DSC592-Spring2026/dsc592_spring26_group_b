@@ -49,7 +49,7 @@ code: ../../
 environment: azureml:AzureML-Designer:89
 
 command: >-
-  python -m aml_shared.urldecode
+  python -m aml_shared.urldecode &&
   python -m azureml.studio.modules.datatransform.split_data.split_data
   --dataset ${{inputs.Dataset}}
   --splitting-mode "${{inputs.Splitting_mode}}"
