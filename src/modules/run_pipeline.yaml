@@ -10,7 +10,9 @@ jobs:
     type: command
     component: azureml:preprocess_text_custom:VERSION_PLACEHOLDER
     inputs:
-      Dataset: azureml:amazon-review-feedback:1
+      Dataset:
+        type: uri_folder
+        path: azureml:amazon-review-feedback:1
       Text_column_to_clean: "reviewText"
       Language: "English"
     outputs:
