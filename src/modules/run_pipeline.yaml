@@ -10,9 +10,7 @@ jobs:
     type: command
     component: azureml:preprocess_text_custom:VERSION_PLACEHOLDER
     inputs:
-      Dataset: 
-        type: uri_folder
-        path: azureml://datastores/workspaceblobstore/paths/UI/2026-04-22_015700_UTC/
+      Dataset: azureml:amazon-review-feedback:1
       Text_column_to_clean: "reviewText"
       Language: "English"
     outputs:
