@@ -16,7 +16,7 @@ inputs:
     type: string
     default: "English"
   Text_column_to_clean:
-    type: mltable_column
+    type: string
   Remove_stop_words:
     type: boolean
     default: true

@@ -13,7 +13,8 @@ jobs:
       Dataset:
         type: uri_folder
         path: azureml://datastores/workspaceblobstore/paths/UI/2026-04-22_015700_UTC/
-      Text_column_to_clean: "reviewText"
+      Text_column_to_clean: >-
+        {"rules":[{"columnNames":["reviewText"]}]}
       Language: "English"
     outputs:
       Results_dataset:
