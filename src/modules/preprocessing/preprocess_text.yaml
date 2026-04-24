@@ -66,8 +66,9 @@ outputs:
 code: ../../
 environment: azureml:AzureML-Designer:89
 command: >-
-  python -m aml_shared.urldecode
-  python -m azureml.studio.modules.text_analytics.preprocess_text.preprocess_text
+  python -m aml_shared.urldecode &&
+  python -m azureml.studio.modulehost.module_invoker
+  --module-name=azureml.studio.modules.text_analytics.preprocess_text.preprocess_text
   --dataset ${{inputs.Dataset}}
   --text-column-to-clean "${{inputs.Text_column_to_clean}}"
   --language "${{inputs.Language}}"
@@ -82,4 +83,5 @@ command: >-
   --remove-ur-ls ${{inputs.Remove_URLs}}
   --normalize-backslashes-to-slashes ${{inputs.Normalize_backslashes_to_slashes}}
   --split-tokens-on-special-characters ${{inputs.Split_tokens_on_special_characters}}
+  $[[--stop-words ${{inputs.Stop_words}}]]
   --results-dataset ${{outputs.Results_dataset}}
