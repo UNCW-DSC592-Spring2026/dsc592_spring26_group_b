@@ -1,61 +1,109 @@
-# AzureML Invoker
+# Azure ML Pipeline
 
-## 🚀 Azure ML CI/CD & Pipeline Guide
+## Overview
 
-This project uses **GitHub Actions** to automate the registration of Azure ML Components and the submission of pipeline jobs. This ensures that every code change is validated in the cloud using a consistent environment.
+An end-to-end NLP pipeline on Azure ML that preprocesses app review text, trains a Linear Regression model to predict reviewer ratings, and scores on a held-out test set.
 
-### The CI/CD Workflow
-The automation is triggered whenever code is pushed to the `baseline` branch.
-1. **Dynamic Versioning**: Every run generates a unique version (e.g., `1.0.12`) using the GitHub Run ID, replacing `SET_BY_GITHUB_ACTIONS` and `VERSION_PLACEHOLDER` in your YAMLs.
-2. **Payload Optimization**: The workflow automatically purges large local datasets (like `data.csv`) to keep the component code size under 100KB, preventing **TransientError** timeouts.
-3. **Resilient Registration**: Uses a retry loop to handle Azure East US management plane hiccups.
-4. **End-to-End Test**: Submits `run_pipeline.yaml` to execute the full Preprocess -> Split -> Train -> Score graph.
+**Pipeline stages:**
+
+```
+raw data → preprocess_text → split_data → train → score
+```
+
+| Step | Component | What it does |
+|---|---|---|
+| 1 | `preprocess_text` | NLTK cleaning: stop words, lemmatization, lowercasing, URL/email/number removal |
+| 2 | `split_data` | 80/20 train/test split via sklearn |
+| 3 | `train` | TF-IDF + OLS Linear Regression, saves `model.pkl` |
+| 4 | `score` | Loads model, appends `score` column to test set |
 
 ---
 
-## 💻 Local Execution
+## Repository Structure
 
-If you are developing locally and want to trigger a job without pushing to GitHub, follow these steps.
+```
+src/
+  components/
+    conda.yml                      # shared environment (pandas, sklearn, nltk, joblib)
+    preprocess_text/
+      preprocess_text.py
+      preprocess_text.yml
+    split_data/
+      split_data.py
+      split_data.yml
+    train/
+      train.py
+      train.yml
+    score/
+      score.py
+      score.yml
+  pipeline.yml                     # top-level pipeline job
+  run_pipeline.sh                  # local execution helper
+```
 
-### 1. Prerequisites
-Ensure you have the Azure CLI and the ML extension installed:
+Each component is self-contained: its Python script and YAML live in the same directory (`code: .`). No custom invoker or Designer module wrappers are needed.
+
+---
+
+## CI/CD
+
+Pushing to `baseline` triggers `.github/workflows/deploy-aml.yml`, which:
+
+1. **Versions** all component and pipeline YAMLs using `github.run_number` (e.g. `1.0.42`)
+2. **Purges** local CSVs/parquet files to keep code snapshots under 100 KB
+3. **Registers** each component with retry logic (handles Azure East US transient errors)
+4. **Submits** `src/pipeline.yml` as a pipeline job
+
+The workflow only triggers on changes under `src/components/**` or `src/pipeline.yml`.
+
+---
+
+## Local Execution
+
+### Prerequisites
+
 ```bash
 az login
 az extension add -n ml
 az account set --subscription "d68c0c8b-ff0f-447d-8a70-7eca5e8f7940"
 ```
 
-### 2. Manual Component Registration
-Before submitting a job, you must register your modified components. You can use a timestamp to ensure the version is unique:
+### Register a component manually
+
 ```bash
-# Example for Preprocess component
-az ml component create --file src/modules/preprocessing/preprocess_text.yaml \
+VERSION="1.0.local"
+sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" src/components/preprocess_text/preprocess_text.yml
+
+az ml component create --file src/components/preprocess_text/preprocess_text.yml \
     --resource-group dsc592_spring26_group_b \
     --workspace-name dsc592_spring26_group_b
 ```
 
-### 3. Submitting the Pipeline
-Update the `component:` version in `run_pipeline.yaml` to match the version you just created, then run:
+### Submit the pipeline
+
 ```bash
-az ml job create --file run_pipeline.yaml \
+sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" src/pipeline.yml
+
+az ml job create --file src/pipeline.yml \
     --resource-group dsc592_spring26_group_b \
     --workspace-name dsc592_spring26_group_b \
     --stream
 ```
 
+Or use the helper script (handles versioning and all four components):
 
-Since you used the `--sdk-auth` flag and created the cluster via the CLI, your setup is technically "admin-level" for the Resource Group. However, for a clean and professional **README**, you should document how to verify these permissions and ensure the compute cluster is properly scoped for the GitHub Service Principal.
-
-Add this section to your **README** to explain the infrastructure setup:
+```bash
+export AZURE_RG="dsc592_spring26_group_b"
+export AZURE_WORKSPACE="dsc592_spring26_group_b"
+export BUILD_VERSION="1.0.local"
+bash src/run_pipeline.sh
+```
 
 ---
 
-## 🏗️ Infrastructure & Permissions Setup
+## Infrastructure Setup
 
-This project requires a **Service Principal** for GitHub Actions and a **dedicated compute cluster** in Azure ML.
-
-### 1. Create the Service Principal (SP)
-To allow GitHub to manage resources, we created an SP with the `--sdk-auth` flag. This generates the JSON block required for the `AZURE_CREDENTIALS` GitHub Secret.
+### Service Principal
 
 ```bash
 az ad sp create-for-rbac --name "github-actions-ml-admin" \
@@ -64,10 +112,9 @@ az ad sp create-for-rbac --name "github-actions-ml-admin" \
     --sdk-auth
 ```
 
-> **Note:** Copy the resulting JSON output and paste it into your GitHub Repository Secrets as `AZURE_CREDENTIALS`.
+Paste the JSON output into GitHub Secrets as `AZURE_CREDENTIALS`.
 
-### 2. Provision the Compute Cluster
-The pipeline is configured to run on a cluster named `github-cluster`. We use `Standard_DS3_v2` instances to provide enough memory for text preprocessing and model training.
+### Compute Cluster
 
 ```bash
 az ml compute create --name "github-cluster" \
@@ -79,46 +126,19 @@ az ml compute create --name "github-cluster" \
      --workspace-name dsc592_spring26_group_b
 ```
 
-### 3. Verify Role Assignments
-While the `contributor` role is assigned at the Resource Group level, ensure the Service Principal has permissions to specifically interact with the Machine Learning Workspace. In the Azure Portal:
-1. Navigate to your **Machine Learning Workspace**.
-2. Select **Access Control (IAM)** -> **Role Assignments**.
-3. Confirm `github-actions-ml-admin` is listed. 
-4. If you encounter "Compute Access" errors, manually add the **AzureML Data Scientist** role to the Service Principal for that workspace.
+### Role Assignments
 
+If you encounter compute access errors, add the **AzureML Data Scientist** role to the Service Principal in the workspace IAM settings (the `contributor` role at resource group level is not always sufficient).
 
 ---
 
-## 🐳 Docker Execution
+## Troubleshooting
 
-You can use the provided Dockerfile to run the entire orchestration logic (versioning, registration, and submission) from a container.
+**TransientError / timeout on component registration** — Azure East US management plane under load. The workflow retries 3 times with 10s delay. If it still fails, wait a few minutes and re-run the action.
 
-### 1. Build the Orchestrator
-```bash
-docker build -t aml-pipeline-runner .
-```
-
-### 2. Run the Pipeline
-Pass your Azure environment details as variables. Note that you must be authenticated (or use a Service Principal login inside the script):
-```bash
-docker run -e AZURE_RG="dsc592_spring26_group_b" \
-           -e AZURE_WORKSPACE="dsc592_spring26_group_b" \
-           -e BUILD_VERSION="1.0.manual" \
-           aml-pipeline-runner
-```
-
----
-
-## ⚠️ Troubleshooting
-
-### MissingSubscription Errors (Git Bash)
-If you encounter path conversion errors in Windows Git Bash, use:
+**MissingSubscription errors on Windows Git Bash**
 ```bash
 export MSYS_NO_PATHCONV=1
-# Then run your az commands
 ```
 
-### TransientError / Service Invocation Timeout
-If the CLI hangs for 10 seconds and fails:
-1. **Check file size**: Ensure `data.csv` or other large files are in `.amlignore`. The upload should be **< 1MB**.
-2. **Check Azure Status**: This often indicates the `eastus` Management Registry is under high load. Wait 10 minutes and retry.
+**Component upload too large** — Ensure `data.csv` and other large files are listed in `.amlignore`. Code snapshots must stay under 100 KB.
