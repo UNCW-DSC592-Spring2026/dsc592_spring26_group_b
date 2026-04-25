@@ -2,7 +2,7 @@ name: Azure ML Full Pipeline CI/CD
 
 on:
   push:
-    branches: [ baseline ]
+    branches: [ main ]
     paths:
       - 'src/components/**'
       - 'src/pipeline.yml'
