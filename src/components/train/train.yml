@@ -13,9 +13,6 @@ inputs:
   label_column:
     type: string
     default: reviewerRating
-  l2_weight:
-    type: number
-    default: 0.005
 
 outputs:
   trained_model:
@@ -31,5 +28,4 @@ command: >-
   --dataset ${{inputs.dataset}}
   --text_column ${{inputs.text_column}}
   --label_column ${{inputs.label_column}}
-  --l2_weight ${{inputs.l2_weight}}
   --trained_model ${{outputs.trained_model}}

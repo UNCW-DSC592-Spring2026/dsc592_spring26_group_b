@@ -4,7 +4,7 @@ import os
 import joblib
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
 
 
@@ -13,7 +13,6 @@ def main():
     parser.add_argument('--dataset', required=True)
     parser.add_argument('--text_column', default='reviewText')
     parser.add_argument('--label_column', default='reviewerRating')
-    parser.add_argument('--l2_weight', type=float, default=0.005)
     parser.add_argument('--trained_model', required=True)
     args = parser.parse_args()
 
@@ -25,7 +24,7 @@ def main():
 
     model = Pipeline([
         ('tfidf', TfidfVectorizer(max_features=10000)),
-        ('ridge', Ridge(alpha=args.l2_weight)),
+        ('lr', LinearRegression()),
     ])
     model.fit(X, y)
 

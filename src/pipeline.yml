@@ -12,7 +12,6 @@ inputs:
   label_column: reviewerRating
   train_fraction: 0.8
   random_seed: 42
-  l2_weight: 0.005
 
 jobs:
   cleaning_step:
@@ -45,7 +44,6 @@ jobs:
       dataset: ${{parent.jobs.split_step.outputs.results_dataset1}}
       text_column: ${{parent.inputs.text_column}}
       label_column: ${{parent.inputs.label_column}}
-      l2_weight: ${{parent.inputs.l2_weight}}
     outputs:
       trained_model:
         mode: upload
