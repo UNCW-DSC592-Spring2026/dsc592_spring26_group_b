@@ -1,0 +1,30 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: score_model
+display_name: Score Model
+version: "SET_BY_GITHUB_ACTIONS"
+type: command
+
+inputs:
+  trained_model:
+    type: uri_folder
+  dataset:
+    type: uri_folder
+  text_column:
+    type: string
+    default: reviewText
+
+outputs:
+  scored_dataset:
+    type: uri_folder
+
+code: .
+environment:
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
+  conda_file: ../conda.yml
+
+command: >-
+  python score.py
+  --trained_model ${{inputs.trained_model}}
+  --dataset ${{inputs.dataset}}
+  --text_column ${{inputs.text_column}}
+  --scored_dataset ${{outputs.scored_dataset}}

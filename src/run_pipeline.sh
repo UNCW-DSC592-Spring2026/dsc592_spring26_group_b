@@ -6,19 +6,19 @@ VERSION=${BUILD_VERSION:-"1.0.$(date +%s)"}
 echo "Baking version $VERSION into YAMLs..."
 
 # Update placeholders exactly like your GitHub Action
-find . -name "*.yaml" -exec sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" {} +
-find . -name "run_pipeline.yaml" -exec sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" {} +
+find . \( -name "*.yaml" -o -name "*.yml" \) \
+  -exec sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" {} +
+find . -name "pipeline.yml" \
+  -exec sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" {} +
 
-# Register components (simplified loop)
-COMPONENTS=("preprocess_text.yaml" "split_data.yaml" "linear_regression.yaml" "train_model.yaml" "score_model.yaml")
+COMPONENTS=("preprocess_text.yml" "split_data.yml" "train.yml" "score.yml")
 
 for comp in "${COMPONENTS[@]}"; do
-    FILE_PATH=$(find . -name "$comp")
+    FILE_PATH=$(find ./src/components -name "$comp")
     if [ -n "$FILE_PATH" ]; then
         az ml component create --file "$FILE_PATH" -g $AZURE_RG -w $AZURE_WORKSPACE
     fi
 done
 
-# Launch the Job
 echo "Submitting pipeline..."
-az ml job create --file run_pipeline.yaml -g $AZURE_RG -w $AZURE_WORKSPACE --no-wait
+az ml job create --file src/pipeline.yml -g $AZURE_RG -w $AZURE_WORKSPACE --no-wait

@@ -4,9 +4,8 @@ on:
   push:
     branches: [ baseline ]
     paths:
-      - '**.yaml'
-      - '**.py'
-      - 'aml_shared/**'
+      - 'src/components/**'
+      - 'src/pipeline.yml'
 
 jobs:
   deploy-and-run-pipeline:
@@ -22,31 +21,30 @@ jobs:
 
       - name: Install ML Extension
         run: az extension add -n ml
+
       - name: Purge Data from Workspace
         run: |
-          # Remove large files that shouldn't be uploaded to Azure ML
           find . -name "*.csv" -delete
           find . -name "*.parquet" -delete
           rm -rf tests/ experiments/ docs/
+
       - name: Prepare and Register All Components
         run: |
-          # 1. Define the dynamic version
           VERSION="1.0.${{ github.run_number }}"
           echo "DEPLOY_VERSION=$VERSION" >> $GITHUB_ENV
 
-          # 2. Inject version into all Component and Job YAMLs
-          find . -name "*.yaml" -exec sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" {} +
-          find . -name "run_pipeline.yaml" -exec sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" {} +
-          echo "Registering all components with version: $VERSION"
-          # Components to register
-          COMPONENTS=("preprocess_text.yaml" "split_data.yaml" "linear_regression.yaml" "train_model.yaml" "score_model.yaml")
+          find . \( -name "*.yaml" -o -name "*.yml" \) \
+            -exec sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" {} +
+          find . -name "pipeline.yml" \
+            -exec sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" {} +
+
+          echo "Registering components with version: $VERSION"
+          COMPONENTS=("preprocess_text.yml" "split_data.yml" "train.yml" "score.yml")
 
           for file_name in "${COMPONENTS[@]}"; do
-            FILE_PATH=$(find . -name "$file_name")
+            FILE_PATH=$(find ./src/components -name "$file_name")
             if [ -n "$FILE_PATH" ]; then
-              echo "Attempting to register $file_name..."
-
-              # Retry logic: Try up to 3 times
+              echo "Registering $file_name..."
               SUCCESS=false
               for i in {1..3}; do
                 if az ml component create --file "$FILE_PATH" \
@@ -55,24 +53,20 @@ jobs:
                   SUCCESS=true
                   break
                 else
-                  echo "Attempt $i failed. Azure ML service might be busy. Retrying in 10s..."
+                  echo "Attempt $i failed. Retrying in 10s..."
                   sleep 10
                 fi
               done
-
               if [ "$SUCCESS" = false ]; then
                 echo "Failed to register $file_name after 3 attempts."
                 exit 1
               fi
             fi
           done
-         
+
       - name: Submit Full Pipeline Job
         run: |
-          # Find the exact path for the pipeline job file
-          PIPELINE_PATH=$(find . -name "run_pipeline.yaml")
-          echo "Launching Full Pipeline from $PIPELINE_PATH..."
-
-          az ml job create --file "$PIPELINE_PATH" \
+          echo "Launching pipeline..."
+          az ml job create --file src/pipeline.yml \
             --resource-group dsc592_spring26_group_b \
             --workspace-name dsc592_spring26_group_b

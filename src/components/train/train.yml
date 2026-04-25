@@ -1,0 +1,35 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: train_model
+display_name: Train Model
+version: "SET_BY_GITHUB_ACTIONS"
+type: command
+
+inputs:
+  dataset:
+    type: uri_folder
+  text_column:
+    type: string
+    default: reviewText
+  label_column:
+    type: string
+    default: reviewerRating
+  l2_weight:
+    type: number
+    default: 0.005
+
+outputs:
+  trained_model:
+    type: uri_folder
+
+code: .
+environment:
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
+  conda_file: ../conda.yml
+
+command: >-
+  python train.py
+  --dataset ${{inputs.dataset}}
+  --text_column ${{inputs.text_column}}
+  --label_column ${{inputs.label_column}}
+  --l2_weight ${{inputs.l2_weight}}
+  --trained_model ${{outputs.trained_model}}
