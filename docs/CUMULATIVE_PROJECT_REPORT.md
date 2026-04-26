@@ -86,3 +86,17 @@ With this, we were able to create a diagram for our system that is modular, scal
 
 
 ## Phase 3
+
+
+### CI/CD & Automation of Working Pipeline 
+
+We have successfully implemented a fully automated deployment pipeline using GitHub Actions. This workflow triggers automatically upon file changes in specific directories, allowing for seamless testing and deployment of new model variants.
+
+### Cloud Infrastructure & Orchestration
+
+To support the pipeline, the following are configured within Azure ML Studio.
+The Workspace Blob Storage, configured for efficient input dataset management, containing a store for `amazon review dataset`, Compute Clusters, scaled and managed Azure ML compute for efficient job execution. And RBAC & Security, Administered Contributor roles to ensure secure, automated job dispatching, for GitHub Actions role assignments.
+
+### Software Architecture 
+
+The repository has grown to support modular python components for each step of the Azure ML pipeline. The respective documentation has been updated and an updated component diagram is included.
