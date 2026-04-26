@@ -87,6 +87,22 @@ With this, we were able to create a diagram for our system that is modular, scal
 
 ## Phase 3
 
+### Exploratory Data Analysis
+Before recommending any pipeline changes, I performed a full EDA on AppReviewData.csv (111,143 reviews across 492 apps) to understand what the data actually looks like. 
+The analysis surfaced a severe class imbalance with 60.9% of reviews rated 1.0 and only 71 reviews rated 0.0, a scraping artifact ("Full Review" appended to most reviews), label noise (non-English words like Bekar — Hindi/Urdu for "useless" — appearing in the 1.0 class), multilingual content, and an inverted-U pattern in review length across ratings. These findings are committed in notebooks/Data_Exploration.ipynb and now anchor the rest of my Phase 3 work.
+
+### Baseline Text Preprocessing
+The doc covers each enabled option like lowercasing, stopword removal, lemmatization, special-character and number removal, URL and email stripping, contraction expansion, duplicate-character collapsing, and notes where each setting helps the dataset. Examples include converting the short words into don't into do not.
+
+### Feature Extraction 
+Suggested couple of features 1. N - Grams, and 2. Domain Lexicon
+
+### Privacy / PII Protocol 
+quantifies how many reviews actually contain emails, phone numbers, URLs, and social handles. We will use the actual results from this scan to determine how to hide sensitive data and how to catch potential threats, rather than just guessing or making assumptions.
+
+### Domain Lexicon
+The EDA already surfaced concrete slang and informal-spelling candidates that will seed the lexicon (e.g. gud, worky, ise, bekar, plus the "Full Review" artifact). The build will produce data/domain_lexicon.json, a builder script, and a methodology doc in docs/.
+
 
 ### CI/CD & Automation of Working Pipeline 
 
