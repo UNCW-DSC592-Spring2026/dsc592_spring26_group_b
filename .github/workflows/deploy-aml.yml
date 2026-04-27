@@ -1,0 +1,72 @@
+name: Azure ML Full Pipeline CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/components/**'
+      - 'src/pipeline.yml'
+
+jobs:
+  deploy-and-run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install ML Extension
+        run: az extension add -n ml
+
+      - name: Purge Data from Workspace
+        run: |
+          find . -name "*.csv" -delete
+          find . -name "*.parquet" -delete
+          rm -rf tests/ experiments/ docs/
+
+      - name: Prepare and Register All Components
+        run: |
+          VERSION="1.0.${{ github.run_number }}"
+          echo "DEPLOY_VERSION=$VERSION" >> $GITHUB_ENV
+
+          find . \( -name "*.yaml" -o -name "*.yml" \) \
+            -exec sed -i "s/SET_BY_GITHUB_ACTIONS/$VERSION/g" {} +
+          find . -name "pipeline.yml" \
+            -exec sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" {} +
+
+          echo "Registering components with version: $VERSION"
+          COMPONENTS=("preprocess_text.yml" "split_data.yml" "train.yml" "score.yml")
+
+          for file_name in "${COMPONENTS[@]}"; do
+            FILE_PATH=$(find ./src/components -name "$file_name")
+            if [ -n "$FILE_PATH" ]; then
+              echo "Registering $file_name..."
+              SUCCESS=false
+              for i in {1..3}; do
+                if az ml component create --file "$FILE_PATH" \
+                  --resource-group dsc592_spring26_group_b \
+                  --workspace-name dsc592_spring26_group_b; then
+                  SUCCESS=true
+                  break
+                else
+                  echo "Attempt $i failed. Retrying in 10s..."
+                  sleep 10
+                fi
+              done
+              if [ "$SUCCESS" = false ]; then
+                echo "Failed to register $file_name after 3 attempts."
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Submit Full Pipeline Job
+        run: |
+          echo "Launching pipeline..."
+          az ml job create --file src/pipeline.yml \
+            --resource-group dsc592_spring26_group_b \
+            --workspace-name dsc592_spring26_group_b

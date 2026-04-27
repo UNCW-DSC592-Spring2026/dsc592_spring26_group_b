@@ -1,0 +1,67 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: preprocess_text
+display_name: Preprocess Text
+version: "SET_BY_GITHUB_ACTIONS"
+type: command
+
+inputs:
+  dataset:
+    type: uri_folder
+  text_column:
+    type: string
+    default: reviewText
+  remove_stop_words:
+    type: boolean
+    default: true
+  use_lemmatization:
+    type: boolean
+    default: true
+  normalize_case:
+    type: boolean
+    default: true
+  remove_numbers:
+    type: boolean
+    default: true
+  remove_special_chars:
+    type: boolean
+    default: true
+  remove_duplicate_chars:
+    type: boolean
+    default: true
+  remove_emails:
+    type: boolean
+    default: true
+  remove_urls:
+    type: boolean
+    default: true
+  normalize_backslashes:
+    type: boolean
+    default: true
+  split_on_special_chars:
+    type: boolean
+    default: true
+
+outputs:
+  results_dataset:
+    type: uri_folder
+
+code: .
+environment:
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
+  conda_file: ../conda.yml
+
+command: >-
+  python preprocess_text.py
+  --dataset ${{inputs.dataset}}
+  --text_column ${{inputs.text_column}}
+  --remove_stop_words ${{inputs.remove_stop_words}}
+  --use_lemmatization ${{inputs.use_lemmatization}}
+  --normalize_case ${{inputs.normalize_case}}
+  --remove_numbers ${{inputs.remove_numbers}}
+  --remove_special_chars ${{inputs.remove_special_chars}}
+  --remove_duplicate_chars ${{inputs.remove_duplicate_chars}}
+  --remove_emails ${{inputs.remove_emails}}
+  --remove_urls ${{inputs.remove_urls}}
+  --normalize_backslashes ${{inputs.normalize_backslashes}}
+  --split_on_special_chars ${{inputs.split_on_special_chars}}
+  --results_dataset ${{outputs.results_dataset}}

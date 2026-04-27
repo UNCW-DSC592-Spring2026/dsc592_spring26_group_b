@@ -1,0 +1,36 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: split_data
+display_name: Split Data
+version: "SET_BY_GITHUB_ACTIONS"
+type: command
+
+inputs:
+  dataset:
+    type: uri_folder
+  train_fraction:
+    type: number
+    default: 0.8
+    min: 0.0
+    max: 1.0
+  random_seed:
+    type: integer
+    default: 42
+
+outputs:
+  results_dataset1:
+    type: uri_folder
+  results_dataset2:
+    type: uri_folder
+
+code: .
+environment:
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
+  conda_file: ../conda.yml
+
+command: >-
+  python split_data.py
+  --dataset ${{inputs.dataset}}
+  --train_fraction ${{inputs.train_fraction}}
+  --random_seed ${{inputs.random_seed}}
+  --results_dataset1 ${{outputs.results_dataset1}}
+  --results_dataset2 ${{outputs.results_dataset2}}

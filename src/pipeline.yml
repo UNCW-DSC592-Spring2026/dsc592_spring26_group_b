@@ -1,0 +1,60 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+display_name: AppReview_EndToEnd_Pipeline
+settings:
+  default_compute: azureml:github-cluster
+
+inputs:
+  raw_data:
+    type: uri_folder
+    path: azureml://datastores/workspaceblobstore/paths/UI/2026-04-22_015700_UTC/
+  text_column: reviewText
+  label_column: reviewerRating
+  train_fraction: 0.8
+  random_seed: 42
+
+jobs:
+  cleaning_step:
+    type: command
+    component: azureml:preprocess_text:VERSION_PLACEHOLDER
+    inputs:
+      dataset: ${{parent.inputs.raw_data}}
+      text_column: ${{parent.inputs.text_column}}
+    outputs:
+      results_dataset:
+        mode: upload
+
+  split_step:
+    type: command
+    component: azureml:split_data:VERSION_PLACEHOLDER
+    inputs:
+      dataset: ${{parent.jobs.cleaning_step.outputs.results_dataset}}
+      train_fraction: ${{parent.inputs.train_fraction}}
+      random_seed: ${{parent.inputs.random_seed}}
+    outputs:
+      results_dataset1:
+        mode: upload
+      results_dataset2:
+        mode: upload
+
+  train_step:
+    type: command
+    component: azureml:train_model:VERSION_PLACEHOLDER
+    inputs:
+      dataset: ${{parent.jobs.split_step.outputs.results_dataset1}}
+      text_column: ${{parent.inputs.text_column}}
+      label_column: ${{parent.inputs.label_column}}
+    outputs:
+      trained_model:
+        mode: upload
+
+  score_step:
+    type: command
+    component: azureml:score_model:VERSION_PLACEHOLDER
+    inputs:
+      trained_model: ${{parent.jobs.train_step.outputs.trained_model}}
+      dataset: ${{parent.jobs.split_step.outputs.results_dataset2}}
+      text_column: ${{parent.inputs.text_column}}
+    outputs:
+      scored_dataset:
+        mode: upload
