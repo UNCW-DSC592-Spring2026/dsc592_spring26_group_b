@@ -47,7 +47,7 @@ Each component is self-contained: its Python script and YAML live in the same di
 
 ## CI/CD
 
-Pushing to `baseline` triggers `.github/workflows/deploy-aml.yml`, which:
+Pushing to `main` triggers `.github/workflows/deploy-aml.yml`, which:
 
 1. **Versions** all component and pipeline YAMLs using `github.run_number` (e.g. `1.0.42`)
 2. **Purges** local CSVs/parquet files to keep code snapshots under 100 KB
