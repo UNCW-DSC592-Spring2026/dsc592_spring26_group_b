@@ -82,3 +82,37 @@ The context diagram describes the app review system as a central unit that inter
 The component diagram is more technical with the internal processes of the app review system. It is composed of several layers that work together to create a machine learning pipeline. The data ingestion layer is primarily responsbile for collecting all of the app reviews from the raw data and uploading it to the pipeline. Next, the preprocessing layer is used to normalize text, clean text, lowercasing, slang replacement, and implemeneting privacy measures to exclude private information. After preprocessing, feature extraction is then applied to transform text reviews into numerical vectors that the model can learn from. This data is then ingested into the modeling layer where a prediction model will rate the review from 1-5 stars and will automatically flag any issues with the reviews and store them into our data storage pipeline for future model training. The serving layer then takes this information and scales it based on the usage demands. Finally, the reports layer ingests this information into a dashboard so that developers can utilize insights, metrics, and app performance. In addition, the machine learning engineers can utilize CI/CD pipelines to ensure that the dashboard is accurate and the model is reliable. 
 
 With this, we were able to create a diagram for our system that is modular, scalable, and transparent. The modular aspect of this system comes from the various layers within the system's architectur, allowing for individual components to be worked on without affecting the system as a whole. The scalability is addressed through the use of batdch processing the raw data to ensure that the system can handle the large volume of reviews that will be used as input. Lastly, the system will be transparent by including the keyword extraction and model performance reporting so that developers, engineers, and executives can gain insights in their various fields for further action.
+
+
+
+## Phase 3
+
+### Exploratory Data Analysis
+Before recommending any pipeline changes, I performed a full EDA on AppReviewData.csv (111,143 reviews across 492 apps) to understand what the data actually looks like. 
+The analysis surfaced a severe class imbalance with 60.9% of reviews rated 1.0 and only 71 reviews rated 0.0, a scraping artifact ("Full Review" appended to most reviews), label noise (non-English words like Bekar — Hindi/Urdu for "useless" — appearing in the 1.0 class), multilingual content, and an inverted-U pattern in review length across ratings. These findings are committed in notebooks/Data_Exploration.ipynb and now anchor the rest of my Phase 3 work.
+
+### Baseline Text Preprocessing
+The doc covers each enabled option like lowercasing, stopword removal, lemmatization, special-character and number removal, URL and email stripping, contraction expansion, duplicate-character collapsing, and notes where each setting helps the dataset. Examples include converting the short words into don't into do not.
+
+### Feature Extraction 
+Suggested couple of features 1. N - Grams, and 2. Domain Lexicon
+
+### Privacy / PII Protocol 
+quantifies how many reviews actually contain emails, phone numbers, URLs, and social handles. We will use the actual results from this scan to determine how to hide sensitive data and how to catch potential threats, rather than just guessing or making assumptions.
+
+### Domain Lexicon
+The EDA already surfaced concrete slang and informal-spelling candidates that will seed the lexicon (e.g. gud, worky, ise, bekar, plus the "Full Review" artifact). The build will produce data/domain_lexicon.json, a builder script, and a methodology doc in docs/.
+
+
+### CI/CD & Automation of Working Pipeline 
+
+We have successfully implemented a fully automated deployment pipeline using GitHub Actions. This workflow triggers automatically upon file changes in specific directories, allowing for seamless testing and deployment of new model variants.
+
+### Cloud Infrastructure & Orchestration
+
+To support the pipeline, the following are configured within Azure ML Studio.
+The Workspace Blob Storage, configured for efficient input dataset management, containing a store for `amazon review dataset`, Compute Clusters, scaled and managed Azure ML compute for efficient job execution. And RBAC & Security, Administered Contributor roles to ensure secure, automated job dispatching, for GitHub Actions role assignments.
+
+### Software Architecture 
+
+The repository has grown to support modular python components for each step of the Azure ML pipeline. The respective documentation has been updated and an updated component diagram is included.
