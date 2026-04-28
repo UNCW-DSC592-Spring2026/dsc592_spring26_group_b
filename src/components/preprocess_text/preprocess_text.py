@@ -107,7 +107,6 @@ def mask_pii(text, return_audit=False):
         return text, audit
     return text
 
-
 def detect_pii(text):
     """
     Detect PII without masking. Returns counts per category.
