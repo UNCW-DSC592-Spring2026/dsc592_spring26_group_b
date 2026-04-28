@@ -69,11 +69,7 @@ jobs:
           echo "RUN_NAME=$RUN_NAME" >> $GITHUB_ENV
           
           # This command streams logs and waits until the pipeline reaches a terminal state
-          az ml job show --name $RUN_NAME \
-            --resource-group dsc592_spring26_group_b \
-            --workspace-name dsc592_spring26_group_b \
-            --wait
-
+          az ml job show --name $RUN_NAME --resource-group dsc592_spring26_group_b --workspace-name dsc592_spring26_group_b --wait
       - name: Download Results
         if: success()
         run: |
