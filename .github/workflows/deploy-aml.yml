@@ -59,17 +59,26 @@ jobs:
       - name: Submit and Wait for Pipeline
         id: run_pipeline
         run: |
-          echo "Launching pipeline and waiting for completion..."
-          # Capture the Run ID
-          RUN_NAME=$(az ml job create --file src/pipeline.yml \
-            --resource-group dsc592_spring26_group_b \
-            --workspace-name dsc592_spring26_group_b \
-            --query name -o tsv)
+          # 1. Submit the job and capture the Run ID
+          # Using a single line for the create command to ensure the query works
+          RUN_NAME=$(az ml job create --file src/pipeline.yml --resource-group dsc592_spring26_group_b --workspace-name dsc592_spring26_group_b --query name -o tsv)
           
           echo "RUN_NAME=$RUN_NAME" >> $GITHUB_ENV
+          echo "Job $RUN_NAME submitted successfully. Monitoring status..."
           
-          # This command streams logs and waits until the pipeline reaches a terminal state
-          az ml job show --name $RUN_NAME --resource-group dsc592_spring26_group_b --workspace-name dsc592_spring26_group_b --wait
+          # 2. Use a loop to poll the status if --wait continues to fail
+          # This is the 'bulletproof' method for automation
+          while true; do
+            STATUS=$(az ml job show --name $RUN_NAME --resource-group dsc592_spring26_group_b --workspace-name dsc592_spring26_group_b --query status -o tsv)
+            echo "Current Status: $STATUS"
+            if [[ "$STATUS" == "Completed" || "$STATUS" == "Succeeded" ]]; then
+              break
+            elif [[ "$STATUS" == "Failed" || "$STATUS" == "Canceled" ]]; then
+              echo "Job failed or was canceled."
+              exit 1
+            fi
+            sleep 30
+          done
       - name: Download Results
         if: success()
         run: |
