@@ -2,7 +2,7 @@ name: Azure ML Full Pipeline CI/CD
 
 on:
   push:
-    branches: [ Implement-Automated-Anonymization-for-Privacy ]
+    branches: [ main ]
     paths:
       - 'src/components/**'
       - 'src/pipeline.yml'
