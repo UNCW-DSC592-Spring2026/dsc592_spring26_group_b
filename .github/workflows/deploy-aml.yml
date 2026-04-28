@@ -71,7 +71,7 @@ jobs:
           # This command streams logs and waits until the pipeline reaches a terminal state
           az ml job show --name $RUN_NAME \
             --resource-group dsc592_spring26_group_b \
-            --workspace-name dsc592_spring26_group_b \ 
+            --workspace-name dsc592_spring26_group_b \
             --wait
 
       - name: Download Results
