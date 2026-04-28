@@ -86,7 +86,7 @@ jobs:
           az ml job download --name ${{ env.RUN_NAME }} \
             --resource-group dsc592_spring26_group_b \
             --workspace-name dsc592_spring26_group_b \
-            --output-name "score_output" --download-path ./outputs
+            --output-name "score_step.scored_dataset" --download-path ./outputs
           echo "Checking downloaded files structure:"
           ls -R ./outputs
 
