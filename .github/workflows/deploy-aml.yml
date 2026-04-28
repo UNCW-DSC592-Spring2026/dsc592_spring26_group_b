@@ -88,6 +88,9 @@ jobs:
             --workspace-name dsc592_spring26_group_b \
             --output-name "score_output" --download-path ./outputs
 
+      - name: Install Python Dependencies
+        run: pip install pandas
+
       - name: Calculate Summary Metrics
         if: success()
         run: |
