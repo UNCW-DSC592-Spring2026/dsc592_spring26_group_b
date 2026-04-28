@@ -38,50 +38,87 @@ jobs:
           find . -name "pipeline.yml" \
             -exec sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" {} +
 
-          echo "Registering components with version: $VERSION"
           COMPONENTS=("preprocess_text.yml" "split_data.yml" "train.yml" "score.yml")
-
           for file_name in "${COMPONENTS[@]}"; do
             FILE_PATH=$(find ./src/components -name "$file_name")
             if [ -n "$FILE_PATH" ]; then
-              echo "Registering $file_name..."
               SUCCESS=false
               for i in {1..3}; do
                 if az ml component create --file "$FILE_PATH" \
                   --resource-group dsc592_spring26_group_b \
                   --workspace-name dsc592_spring26_group_b; then
-                  SUCCESS=true
-                  break
+                  SUCCESS=true; break
                 else
-                  echo "Attempt $i failed. Retrying in 10s..."
                   sleep 10
                 fi
               done
-              if [ "$SUCCESS" = false ]; then
-                echo "Failed to register $file_name after 3 attempts."
-                exit 1
-              fi
+              if [ "$SUCCESS" = false ]; then exit 1; fi
             fi
           done
 
-      - name: Submit Full Pipeline Job
+      - name: Submit and Wait for Pipeline
+        id: run_pipeline
         run: |
-          echo "Launching pipeline..."
-          az ml job create --file src/pipeline.yml \
+          echo "Launching pipeline and waiting for completion..."
+          # Capture the Run ID
+          RUN_NAME=$(az ml job create --file src/pipeline.yml \
             --resource-group dsc592_spring26_group_b \
-            --workspace-name dsc592_spring26_group_b
+            --workspace-name dsc592_spring26_group_b \
+            --query name -o tsv)
+          
+          echo "RUN_NAME=$RUN_NAME" >> $GITHUB_ENV
+          
+          # This command streams logs and waits until the pipeline reaches a terminal state
+          az ml job show --name $RUN_NAME \
+            --resource-group dsc592_spring26_group_b \
+            --workspace-name dsc592_spring26_group_b --wait
+
+      - name: Download Results
+        if: success()
+        run: |
+          # Download the specific output folder (ensure 'score_output' matches your pipeline.yml output name)
+          az ml job download --name ${{ env.RUN_NAME }} \
+            --resource-group dsc592_spring26_group_b \
+            --workspace-name dsc592_spring26_group_b \
+            --output-name "score_output" --download-path ./outputs
+
+      - name: Calculate Summary Metrics
+        if: success()
+        run: |
+          python -c "
+          import pandas as pd
+          import os
+          try:
+              # Locate the downloaded csv
+              df = pd.read_csv('./outputs/named-outputs/score_output/scored.csv')
+              mae = (df['reviewerRating'] - df['score']).abs().mean()
+              avg_rating = df['reviewerRating'].mean()
+              count = len(df)
+              
+              with open(os.environ['GITHUB_ENV'], 'a') as f:
+                  f.write(f'TOTAL_REVIEWS={count}\n')
+                  f.write(f'AVG_RATING={avg_rating:.4f}\n')
+                  f.write(f'MAE={mae:.4f}\n')
+          except Exception as e:
+              print(f'Error calculating metrics: {e}')
+          "
 
       - name: Send Slack Notification
-        if: always() # Ensures notification sends even if registration or submission fails
+        if: always()
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_USERNAME: "Azure ML Deployer"
+          SLACK_USERNAME: "Azure ML Bot"
           SLACK_ICON: https://raw.githubusercontent.com/microsoft/azure-pipelines-tasks/master/Tasks/AzureMonitorAlertsV0/icon.png
-          SLACK_TITLE: "Deployment Status: ${{ job.status }}"
+          SLACK_TITLE: "Azure ML Run: ${{ job.status }}"
           SLACK_MESSAGE: |
-              *Version:* ${{ env.DEPLOY_VERSION }}
-              *Workflow:* ${{ github.workflow }}
-              *Commit:* ${{ github.sha }}
-              *Action URL:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            *Version:* ${{ env.DEPLOY_VERSION }}
+            *Run ID:* `${{ env.RUN_NAME }}`
+            
+            *--- Results Analysis ---*
+            • *Total Reviews:* ${{ env.TOTAL_REVIEWS || 'N/A' }}
+            • *Avg Actual Rating:* ${{ env.AVG_RATING || 'N/A' }}
+            • *Mean Absolute Error:* ${{ env.MAE || 'N/A' }}
+            
+            *View Run in Studio:* https://ml.azure.com/runs/${{ env.RUN_NAME }}?wsid=/subscriptions/YOUR_SUB_ID/resourceGroups/dsc592_spring26_group_b/providers/Microsoft.MachineLearningServices/workspaces/dsc592_spring26_group_b
           SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
