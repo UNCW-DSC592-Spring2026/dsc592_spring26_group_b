@@ -87,29 +87,52 @@ jobs:
             --resource-group dsc592_spring26_group_b \
             --workspace-name dsc592_spring26_group_b \
             --output-name "score_output" --download-path ./outputs
+          echo "Checking downloaded files structure:"
+          ls -R ./outputs
 
       - name: Install Python Dependencies
         run: pip install pandas
-
+        
       - name: Calculate Summary Metrics
         if: success()
         run: |
           python -c "
           import pandas as pd
           import os
+          import glob
+
           try:
-              # Locate the downloaded csv
-              df = pd.read_csv('./outputs/named-outputs/score_output/scored.csv')
+              # Search recursively for scored.csv inside the outputs folder
+              search_path = './outputs/**/scored.csv'
+              files = glob.glob(search_path, recursive=True)
+              
+              if not files:
+                  print(f'Error: Could not find scored.csv in ./outputs')
+                  # List files for debugging if search fails
+                  for root, dirs, filenames in os.walk('./outputs'):
+                      for f in filenames: print(os.path.join(root, f))
+                  exit(1)
+              
+              target_file = files[0]
+              print(f'Found file at: {target_file}')
+              
+              df = pd.read_csv(target_file)
+              
+              # Calculate Metrics
               mae = (df['reviewerRating'] - df['score']).abs().mean()
               avg_rating = df['reviewerRating'].mean()
               count = len(df)
               
+              # Write to GitHub Env
               with open(os.environ['GITHUB_ENV'], 'a') as f:
                   f.write(f'TOTAL_REVIEWS={count}\n')
                   f.write(f'AVG_RATING={avg_rating:.4f}\n')
                   f.write(f'MAE={mae:.4f}\n')
+                  
+              print('Metrics calculated and saved to ENV.')
           except Exception as e:
-              print(f'Error calculating metrics: {e}')
+              print(f'Critical Error: {e}')
+              exit(1)
           "
 
       - name: Send Slack Notification
