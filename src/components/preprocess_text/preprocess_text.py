@@ -65,7 +65,6 @@ REPLACEMENT_TOKENS = {
     'handle': '[HANDLE]',
 }
 
-
 def mask_pii(text, return_audit=False):
     """
     Mask PII in a single piece of text.
