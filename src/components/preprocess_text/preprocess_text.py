@@ -164,7 +164,6 @@ def preprocess(text: str, args) -> str:
 
     return ' '.join(tokens)
 
-
 def main():
     parser = argparse.ArgumentParser(
         description="Preprocess review text with optional PII masking."
