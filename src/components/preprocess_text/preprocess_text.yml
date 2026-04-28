@@ -10,6 +10,9 @@ inputs:
   text_column:
     type: string
     default: reviewText
+  mask_pii:
+    type: boolean
+    default: true
   remove_stop_words:
     type: boolean
     default: true
