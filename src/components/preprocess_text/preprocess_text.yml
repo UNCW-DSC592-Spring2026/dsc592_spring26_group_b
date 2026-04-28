@@ -54,6 +54,7 @@ command: >-
   python preprocess_text.py
   --dataset ${{inputs.dataset}}
   --text_column ${{inputs.text_column}}
+  --mask_pii ${{inputs.mask_pii}}
   --remove_stop_words ${{inputs.remove_stop_words}}
   --use_lemmatization ${{inputs.use_lemmatization}}
   --normalize_case ${{inputs.normalize_case}}
