@@ -68,19 +68,20 @@ jobs:
         run: |
           echo "Launching pipeline..."
           az ml job create --file src/pipeline.yml \
-            --resource-group dsc592_spring26_group_b
+            --resource-group dsc592_spring26_group_b \
+            --workspace-name dsc592_spring26_group_b
 
       - name: Send Slack Notification
         if: always() # Ensures notification sends even if registration or submission fails
         uses: rtCamp/action-slack-notify@v2
         env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-        SLACK_USERNAME: "Azure ML Deployer"
-        SLACK_ICON: https://raw.githubusercontent.com/microsoft/azure-pipelines-tasks/master/Tasks/AzureMonitorAlertsV0/icon.png
-        SLACK_TITLE: "Deployment Status: ${{ job.status }}"
-        SLACK_MESSAGE: |
-            *Version:* ${{ env.DEPLOY_VERSION }}
-            *Workflow:* ${{ github.workflow }}
-            *Commit:* ${{ github.sha }}
-            *Action URL:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}           --workspace-name dsc592_spring26_group_b
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_USERNAME: "Azure ML Deployer"
+          SLACK_ICON: https://raw.githubusercontent.com/microsoft/azure-pipelines-tasks/master/Tasks/AzureMonitorAlertsV0/icon.png
+          SLACK_TITLE: "Deployment Status: ${{ job.status }}"
+          SLACK_MESSAGE: |
+              *Version:* ${{ env.DEPLOY_VERSION }}
+              *Workflow:* ${{ github.workflow }}
+              *Commit:* ${{ github.sha }}
+              *Action URL:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
