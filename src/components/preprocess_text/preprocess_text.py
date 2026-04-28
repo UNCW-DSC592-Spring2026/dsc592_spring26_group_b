@@ -126,7 +126,6 @@ def detect_pii(text):
     text = str(text)
     return {cat: len(pat.findall(text)) for cat, pat in PII_PATTERNS.items()}
 
-
 # ---------------------------------------------------------------------------
 # Text Preprocessing
 # ---------------------------------------------------------------------------
