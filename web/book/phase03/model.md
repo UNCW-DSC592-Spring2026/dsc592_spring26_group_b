@@ -1,5 +1,4 @@
-## Production Pipeline: Automated Sentiment Analysis
-
+## Working pipeline that trains and scores your current best model
 This project demonstrates a fully automated, end-to-end machine learning pipeline designed to monitor and analyze user sentiment from app reviews. By leveraging **Azure Machine Learning** and **GitHub Actions**, the system moves beyond a static model to a living infrastructure that handles data ingestion, model training, and batch scoring.
 
 ### 1. System Architecture
