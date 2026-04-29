@@ -4,7 +4,6 @@ import os
 import joblib
 import pandas as pd
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--trained_model', required=True)
