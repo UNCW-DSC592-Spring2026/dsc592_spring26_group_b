@@ -1,5 +1,5 @@
 
-## 🏗️ Applied Information Theory Concepts
+# Modeling
 Information theory is used to reduce noise and identify the most significant signals within the unstructured text data.
 
 *   **Noise Reduction & Signal Processing**: 
