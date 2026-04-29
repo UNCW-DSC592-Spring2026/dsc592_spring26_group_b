@@ -29,6 +29,5 @@ def main():
     test.to_csv(os.path.join(args.results_dataset2, 'test.csv'), index=False)
     print(f"Split {len(df)} rows → train:{len(train)}, test:{len(test)}")
 
-
 if __name__ == '__main__':
     main()
