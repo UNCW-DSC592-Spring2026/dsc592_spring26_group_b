@@ -29,7 +29,12 @@ project:
       children:
         - file: book/phase02/architecture.md
         - file: book/phase02/riskregister.md
-
+        
+    - title: Phase 03
+      children:
+        - file: book/phase02/architecture.md
+        - file: book/phase02/model.md
+        - file: book/phase03/preprocessing.md
 site:
   options:
     logo: logo.png
