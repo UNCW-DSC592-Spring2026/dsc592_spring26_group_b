@@ -12,7 +12,12 @@ inputs:
   label_column: reviewerRating
   train_fraction: 0.8
   random_seed: 42
-
+outputs:
+  final_pipeline_output:
+    mode: upload
+    # Link this output to the specific job output you want to download
+    path: ${{parent.jobs.score_step.outputs.scored_dataset}}
+    
 jobs:
   cleaning_step:
     type: command
