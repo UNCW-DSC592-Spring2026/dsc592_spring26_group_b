@@ -79,22 +79,47 @@ jobs:
             fi
             sleep 30
           done
-      - name: Download Results
+      - name: Download and Process Results
         if: success()
         run: |
-          # Create outputs directory
           mkdir -p ./outputs
           
-          # List all available outputs from the job
-          echo "Available outputs in the job:"
+          echo "Downloading Scored Dataset..."
+          # We use the top-level output name defined in pipeline.yml
           az ml job download --name ${{ env.RUN_NAME }} \
             --resource-group dsc592_spring26_group_b \
             --workspace-name dsc592_spring26_group_b \
+            --output-name "final_pipeline_output" \
             --download-path ./outputs
-          
-          echo "Downloaded files structure:"
-          ls -R ./outputs || echo "No outputs downloaded"
-      
+
+          python -c "
+          import pandas as pd
+          import os
+          import glob
+
+          try:
+              # Recursive search ensures we find it regardless of nested folder names
+              files = glob.glob('./outputs/**/scored.csv', recursive=True)
+              
+              if not files:
+                  print('CRITICAL: scored.csv not found.')
+                  exit(1)
+              
+              df = pd.read_csv(files[0])
+              mae = (df['reviewerRating'] - df['score']).abs().mean()
+              avg_rating = df['reviewerRating'].mean()
+              count = len(df)
+              
+              with open(os.environ['GITHUB_ENV'], 'a') as f:
+                  f.write(f'TOTAL_REVIEWS={count}\n')
+                  f.write(f'AVG_RATING={avg_rating:.4f}\n')
+                  f.write(f'MAE={mae:.4f}\n')
+              
+              print(f'Processed {count} rows. MAE: {mae:.4f}')
+          except Exception as e:
+              print(f'Python Error: {e}')
+              exit(1)
+          "
       - name: Calculate Summary Metrics
         if: success()
         run: |
