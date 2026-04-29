@@ -32,8 +32,8 @@ jobs:
           # Registration loop (abbreviated for clarity)
           COMPONENTS=("preprocess_text.yml" "split_data.yml" "train.yml" "score.yml")
           for file in "${COMPONENTS[@]}"; do
-            PATH=$(find ./src/components -name "$file")
-            [ -n "$PATH" ] && az ml component create --file "$PATH" -g dsc592_spring26_group_b -w dsc592_spring26_group_b
+            COMP_FILE=$(find ./src/components -name "$file")
+            [ -n "$COMP_FILE" ] && az ml component create --file "$COMP_FILE" -g dsc592_spring26_group_b -w dsc592_spring26_group_b
           done
 
       - name: Submit and Wait for Pipeline
@@ -42,38 +42,82 @@ jobs:
           RUN_NAME=$(az ml job create --file src/pipeline.yml -g dsc592_spring26_group_b -w dsc592_spring26_group_b --query name -o tsv)
           echo "RUN_NAME=$RUN_NAME" >> $GITHUB_ENV
           
-          # Block until completion
-          az ml job show --name $RUN_NAME -g dsc592_spring26_group_b -w dsc592_spring26_group_b --wait
+          # Stream logs and block until job completes; exits non-zero on failure
+          az ml job stream --name $RUN_NAME -g dsc592_spring26_group_b -w dsc592_spring26_group_b
       - name: Install Python Dependencies 
         run: pip install pandas
       - name: Download and Process Results
         if: success()
         run: |
           mkdir -p ./outputs
-          # Download using the output name defined in your pipeline.yml outputs block
+
+          # Attempt 1: pipeline-level output (may be empty if AML treats it as an alias)
           az ml job download --name ${{ env.RUN_NAME }} \
             -g dsc592_spring26_group_b -w dsc592_spring26_group_b \
-            --output-name "scored_dataset" --download-path ./outputs
+            --output-name "final_pipeline_output" --download-path ./outputs || true
 
-          python -c "
+          echo "=== files after pipeline-output download ==="
+          find ./outputs -type f
+
+          # Attempt 2: if no CSV found, pull directly from the score_step child job
+          if ! find ./outputs -name "*.csv" -print -quit | grep -q .; then
+            echo "No CSV from pipeline output; fetching score_step child job..."
+            SCORE_JOB=$(az ml job list \
+              --parent-job-name ${{ env.RUN_NAME }} \
+              -g dsc592_spring26_group_b -w dsc592_spring26_group_b \
+              --query "[?display_name=='score_step'].name | [0]" -o tsv)
+            echo "score_step job id: $SCORE_JOB"
+            az ml job download --name "$SCORE_JOB" \
+              -g dsc592_spring26_group_b -w dsc592_spring26_group_b \
+              --output-name "scored_dataset" --download-path ./outputs
+            echo "=== files after child-job download ==="
+            find ./outputs -type f
+          fi
+
+          python - <<'PYEOF'
           import pandas as pd
-          import os, glob
-          try:
-              files = glob.glob('./outputs/**/*.csv', recursive=True)
-              if not files: exit(1)
-              
-              df = pd.read_csv(files[0])
-              mae = (df['reviewerRating'] - df['score']).abs().mean()
-              avg_rating = df['reviewerRating'].mean()
-              count = len(df)
-              
-              with open(os.environ['GITHUB_ENV'], 'a') as f:
-                  f.write(f'TOTAL_REVIEWS={count}\n')
-                  f.write(f'AVG_RATING={avg_rating:.4f}\n')
-                  f.write(f'MAE={mae:.4f}\n')
-          except Exception as e:
-              print(f'Error: {e}'); exit(1)
-          "
+          import os, glob, math
+
+          files = glob.glob('./outputs/**/*.csv', recursive=True)
+          if not files:
+              print('No CSV files found. Present files:')
+              for f in glob.glob('./outputs/**/*', recursive=True):
+                  print(f'  {f}')
+              exit(1)
+
+          print(f'Reading: {files[0]}')
+          df = pd.read_csv(files[0])
+          required = {'reviewerRating', 'score'}
+          if not required.issubset(df.columns):
+              print(f'Missing columns. Found: {list(df.columns)}')
+              exit(1)
+
+          actual    = df['reviewerRating']
+          predicted = df['score']
+          residuals = actual - predicted
+
+          count         = len(df)
+          avg_rating    = actual.mean()
+          avg_predicted = predicted.mean()
+          mae           = residuals.abs().mean()
+          rmse          = math.sqrt((residuals**2).mean())
+          within_1_star = (residuals.abs() <= 1).mean() * 100
+
+          print(f'Reviews processed : {count}')
+          print(f'Avg actual rating : {avg_rating:.4f}')
+          print(f'Avg predicted     : {avg_predicted:.4f}')
+          print(f'MAE               : {mae:.4f}')
+          print(f'RMSE              : {rmse:.4f}')
+          print(f'Within 1 star     : {within_1_star:.2f}%')
+
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f'TOTAL_REVIEWS={count}\n')
+              f.write(f'AVG_RATING={avg_rating:.4f}\n')
+              f.write(f'AVG_PREDICTED={avg_predicted:.4f}\n')
+              f.write(f'MAE={mae:.4f}\n')
+              f.write(f'RMSE={rmse:.4f}\n')
+              f.write(f'WITHIN_1_STAR={within_1_star:.2f}\n')
+          PYEOF
 
       - name: Send Slack Notification
         if: always()
@@ -87,8 +131,11 @@ jobs:
             
             *--- Results Summary ---*
             • *Total Reviews:* ${{ env.TOTAL_REVIEWS || 'N/A' }}
-            • *Avg Rating:* ${{ env.AVG_RATING || 'N/A' }}
+            • *Avg Actual Rating:* ${{ env.AVG_RATING || 'N/A' }}
+            • *Avg Predicted:* ${{ env.AVG_PREDICTED || 'N/A' }}
             • *MAE:* ${{ env.MAE || 'N/A' }}
+            • *RMSE:* ${{ env.RMSE || 'N/A' }}
+            • *Within 1 Star:* ${{ env.WITHIN_1_STAR || 'N/A' }}%
             
             *Action URL:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
