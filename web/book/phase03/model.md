@@ -39,6 +39,4 @@ The pipeline employs classical statistical methods to ensure the model generaliz
 | **Estimation** | `LinearRegression`[cite: 2] | Map features to a continuous sentiment score[cite: 2, 4]. |
 | **Persistence** | `joblib`[cite: 2, 4] | Serialize the trained model for production scoring[cite: 2, 4]. |
 
----
 
-**Next Step:** Would you like to see how to implement **N-gram** features (Bigrams/Trigrams) to capture multi-word context like "not working"?
