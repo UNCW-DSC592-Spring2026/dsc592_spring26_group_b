@@ -89,13 +89,17 @@ jobs:
         run: |
           mkdir -p ./outputs
           
-          echo "Downloading Scored Dataset..."
-          # We use the top-level output name defined in pipeline.yml
+          echo "Downloading named output: scored_dataset"
+          # We use the specific name used in your pipeline.yml 'outputs' block
           az ml job download --name ${{ env.RUN_NAME }} \
             --resource-group dsc592_spring26_group_b \
             --workspace-name dsc592_spring26_group_b \
-            --output-name "final_pipeline_output" \
+            --output-name "scored_dataset" \
             --download-path ./outputs
+
+          # Verification: Azure sometimes creates a 'named-outputs' subfolder
+          echo "Search results for csv files:"
+          find ./outputs -name "*.csv"
 
           python -c "
           import pandas as pd
@@ -103,14 +107,19 @@ jobs:
           import glob
 
           try:
-              # Recursive search ensures we find it regardless of nested folder names
-              files = glob.glob('./outputs/**/scored.csv', recursive=True)
+              # We look for any csv file inside the download path
+              files = glob.glob('./outputs/**/*.csv', recursive=True)
               
               if not files:
-                  print('CRITICAL: scored.csv not found.')
+                  print('Error: Azure ML download did not produce a CSV file.')
                   exit(1)
               
-              df = pd.read_csv(files[0])
+              target_file = files[0]
+              print(f'Loading file: {target_file}')
+              
+              df = pd.read_csv(target_file)
+              
+              # Calculate the metrics seen in your actual data
               mae = (df['reviewerRating'] - df['score']).abs().mean()
               avg_rating = df['reviewerRating'].mean()
               count = len(df)
@@ -120,11 +129,12 @@ jobs:
                   f.write(f'AVG_RATING={avg_rating:.4f}\n')
                   f.write(f'MAE={mae:.4f}\n')
               
-              print(f'Processed {count} rows. MAE: {mae:.4f}')
+              print('Metrics calculation successful.')
           except Exception as e:
-              print(f'Python Error: {e}')
+              print(f'Python script failed: {e}')
               exit(1)
           "
+     
       - name: Calculate Summary Metrics
         if: success()
         run: |
