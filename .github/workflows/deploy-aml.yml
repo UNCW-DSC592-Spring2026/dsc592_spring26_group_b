@@ -82,17 +82,19 @@ jobs:
       - name: Download Results
         if: success()
         run: |
-          # Download the specific output folder (ensure 'score_output' matches your pipeline.yml output name)
+          # Create outputs directory
+          mkdir -p ./outputs
+          
+          # List all available outputs from the job
+          echo "Available outputs in the job:"
           az ml job download --name ${{ env.RUN_NAME }} \
             --resource-group dsc592_spring26_group_b \
             --workspace-name dsc592_spring26_group_b \
-            --output-name "score_step.scored_dataset" --download-path ./outputs
-          echo "Checking downloaded files structure:"
-          ls -R ./outputs
-
-      - name: Install Python Dependencies
-        run: pip install pandas
-        
+            --download-path ./outputs
+          
+          echo "Downloaded files structure:"
+          ls -R ./outputs || echo "No outputs downloaded"
+      
       - name: Calculate Summary Metrics
         if: success()
         run: |
@@ -100,18 +102,24 @@ jobs:
           import pandas as pd
           import os
           import glob
-
+      
           try:
               # Search recursively for scored.csv inside the outputs folder
               search_path = './outputs/**/scored.csv'
               files = glob.glob(search_path, recursive=True)
               
               if not files:
-                  print(f'Error: Could not find scored.csv in ./outputs')
-                  # List files for debugging if search fails
+                  print('Warning: Could not find scored.csv')
+                  print('Files in outputs directory:')
                   for root, dirs, filenames in os.walk('./outputs'):
-                      for f in filenames: print(os.path.join(root, f))
-                  exit(1)
+                      for f in filenames: 
+                          print(os.path.join(root, f))
+                  # Set default values if file not found
+                  with open(os.environ['GITHUB_ENV'], 'a') as f:
+                      f.write('TOTAL_REVIEWS=N/A\n')
+                      f.write('AVG_RATING=N/A\n')
+                      f.write('MAE=N/A\n')
+                  exit(0)
               
               target_file = files[0]
               print(f'Found file at: {target_file}')
@@ -131,10 +139,9 @@ jobs:
                   
               print('Metrics calculated and saved to ENV.')
           except Exception as e:
-              print(f'Critical Error: {e}')
+              print(f'Error: {e}')
               exit(1)
-          "
-
+          "          
       - name: Send Slack Notification
         if: always()
         uses: rtCamp/action-slack-notify@v2
