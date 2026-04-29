@@ -35,6 +35,7 @@ project:
         - file: book/phase03/architecture.md
         - file: book/phase03/model.md
         - file: book/phase03/preprocessing.md
+        - file: book/phase03/automation.md
 site:
   options:
     logo: logo.png
