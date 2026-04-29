@@ -79,6 +79,11 @@ jobs:
             fi
             sleep 30
           done
+
+        
+      - name: Install Python Dependencies
+        run: pip install pandas
+        
       - name: Download and Process Results
         if: success()
         run: |
