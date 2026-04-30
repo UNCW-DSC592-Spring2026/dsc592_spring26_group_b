@@ -4,7 +4,7 @@ import os
 import joblib
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
 
 
@@ -24,7 +24,7 @@ def main():
 
     model = Pipeline([
         ('tfidf', TfidfVectorizer(max_features=10000)),
-        ('lr', LinearRegression()),
+        ('ridge', Ridge()),
     ])
     model.fit(X, y)
 
