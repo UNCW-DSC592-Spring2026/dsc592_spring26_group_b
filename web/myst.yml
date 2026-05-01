@@ -36,6 +36,9 @@ project:
         - file: book/phase03/model.md
         - file: book/phase03/preprocessing.md
         - file: book/phase03/automation.md
+    - title: Phase 04
+      children:
+      - file: book/phase04/finalmodel.md
 site:
   options:
     logo: logo.png
