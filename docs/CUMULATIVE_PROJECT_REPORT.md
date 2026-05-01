@@ -116,3 +116,21 @@ The Workspace Blob Storage, configured for efficient input dataset management, c
 ### Software Architecture 
 
 The repository has grown to support modular python components for each step of the Azure ML pipeline. The respective documentation has been updated and an updated component diagram is included.
+
+
+
+## Phase 4
+
+**Model Optimization**: Switched from Linear Regression to Ridge Regression to improve generalization and handle multicollinearity via $L_2$ regularization.
+
+**Performance**: The Ridge model reduced variance, resulting in more stable predictions across the test set.
+
+**Documentation**: Fully updated the project webpage with comprehensive documentation of the final model architecture and hyperparameters.
+
+**Monitoring**: Integrated Slack notifications into the deployment pipeline for real-time reporting.Automated 
+
+**Alerts**: The system now broadcasts pipeline success status and model accuracy metrics (MSE/$R^2$) directly to the team.
+
+**Outcome**: Established a transparent, self-reporting production environment for the final model.
+
+
