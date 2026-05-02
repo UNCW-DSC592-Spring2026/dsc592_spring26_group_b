@@ -1,0 +1,17 @@
+This is a placeholder PowerPoint file for the repository UNCW-DSC592-Spring2026/dsc592_spring26_group_b.
+
+I generated a 10-slide report outline and committed this placeholder at docs/dsc592_spring26_group_b_report.pptx so you can find it in the repository. If you need a fully rendered .pptx (binary with embedded images and formatted slides), please reply and I will generate and upload the proper binary PPTX (I can include all notebook screenshots and architecture diagrams).
+
+Slides included (outline):
+1. Title — Project, authors, date
+2. Executive summary — Purpose and highlights
+3. Repository overview — structure, languages (pie chart)
+4. Notebooks inventory — list of notebooks
+5. Data Exploration — objectives, key findings
+6. PII Masker Analysis — objectives, methodology, results
+7. Pipeline & Architecture — pipeline.yml and architecture diagrams
+8. Key visuals — important plots/screenshots (extracted from notebooks)
+9. Code & data quality — dependencies, reproducibility notes
+10. Recommendations & next steps + Appendix
+
+If you'd like me to replace this placeholder with a fully formatted .pptx containing embedded images and architecture diagrams, say "Please generate full PPTX" and I'll produce and commit the binary file to docs/dsc592_spring26_group_b_report.pptx.
